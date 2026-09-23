@@ -1,23 +1,24 @@
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from collections.abc import AsyncGenerator
-from app.db.session import AsyncSessionLocal
+
+from app.api.deps import get_db
+from app.api.players import router as players_router
 
 app = FastAPI(
-    title = "NeuroQuest API",
-    version = "0.1.0",
+    title="NeuroQuest API",
+    version="0.1.0",
 )
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        yield session
+app.include_router(players_router)
+
 
 @app.get("/api/health")
 async def health_check():
-    return{
-        "status" : "ok"
+    return {
+        "status": "ok"
     }
+
 
 @app.get("/api/health/db")
 async def database_health_check(
@@ -25,7 +26,7 @@ async def database_health_check(
 ):
     result = await db.execute(text("SELECT 1"))
 
-    return{
+    return {
         "status": "ok",
         "database": result.scalar(),
     }
