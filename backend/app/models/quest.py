@@ -28,7 +28,9 @@ class Quest(Base):
     )
 
     start_node_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True),
+        ForeignKey("quest_nodes.id", name="fk_quests_start_node_id_quest_nodes"),
+        nullable=True,
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

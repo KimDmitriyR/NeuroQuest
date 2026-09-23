@@ -4,3 +4,5 @@ from app.models.achievement import Achievement  # noqa: F401
 from app.models.quest import Quest  # noqa: F401
 from app.models.quest_node import QuestNode  # noqa: F401
 from app.models.choice import Choice  # noqa: F401
+from app.models.quest_card import QuestCard  # noqa: F401
+from app.models.master_code_letter import MasterCodeLetter  # noqa: F401
