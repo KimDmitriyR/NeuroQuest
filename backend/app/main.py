@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
 from app.api.players import router as players_router
+from app.api.quests import router as quests_router
 
 app = FastAPI(
     title="NeuroQuest API",
@@ -11,6 +12,7 @@ app = FastAPI(
 )
 
 app.include_router(players_router)
+app.include_router(quests_router)
 
 
 @app.get("/api/health")

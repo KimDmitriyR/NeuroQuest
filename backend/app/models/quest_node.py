@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -45,3 +45,10 @@ class QuestNode(Base):
     )
     unlock_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     unlock_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    choices: Mapped[list["Choice"]] = relationship(
+        "Choice",
+        foreign_keys="Choice.node_id",
+        back_populates="node",
+        order_by="Choice.sort_order",
+    )
