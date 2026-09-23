@@ -31,9 +31,11 @@ async def _create_schema():
 @pytest.fixture(autouse=True)
 async def _clean_tables():
     yield
+    table_names = ", ".join(t.name for t in Base.metadata.sorted_tables)
     async with app_engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
+        from sqlalchemy import text
+
+        await conn.execute(text(f"TRUNCATE TABLE {table_names} CASCADE"))
 
 
 @pytest.fixture
