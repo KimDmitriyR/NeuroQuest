@@ -1,0 +1,153 @@
+# Source: квест-задания.docx, СЕКТОР 1 «ФИНСТАРТАП 2.0», КАРТОЧКА 1 «ПЕРВЫЙ ЗАРАБОТОК»
+#
+# Note on color: the source only names the color as "Неоново-бирюзовый"
+# (neon turquoise) without a hex value. color_token below is a placeholder
+# pick (#2DE1C2) for frontend styling - swap it for the real design-system
+# value once one exists.
+
+sector:
+  slug: finstartup-2-0
+  title: "Финстартап 2.0"
+  description: >-
+    Ты — молодой предприниматель. Твоя цель: заработать первые деньги
+    легально и выстроить устойчивую финансовую стратегию.
+  color: "Неоново-бирюзовый"
+  color_token: "#2DE1C2"
+  sort_order: 1
+
+achievements:
+  - key: financial_independence
+    title: "Финансовая самостоятельность"
+    is_badge: true
+  - key: time_management
+    title: "Тайм-менеджмент"
+    is_badge: false
+  - key: financial_maturity
+    title: "Финансовая зрелость"
+    is_badge: false
+
+card:
+  number: 1
+  title: "Первый заработок"
+  intro_text: >-
+    У тебя есть 2000 ₽ карманных. Хочешь купить гаджет за 15 000 ₽.
+    Родители говорят: «Хочешь деньги — заработай сам».
+  qr_token: "finstartup-2-0-01"
+  master_code_letter: "Й"
+  master_code_position: 4
+  # Source text says letter "Т" from the phrase "СОЗДАЙ СВОЙ ПУТЬ" here,
+  # which contradicts every other card and the grand finale section, all of
+  # which spell out "ТВОЙ НОВЫЙ КОД" (Т-В-О-Й-Н-О-В-Ы-Й-К-О-Д). Position 4
+  # of that phrase is "Й", so that's what's used above. Flagged for the
+  # project owner to confirm.
+
+quest:
+  title: "Первый заработок"
+
+nodes:
+  - key: stage1
+    message: "Тебе нужно 15 000 ₽ за 3 недели. Какие варианты?"
+    choices:
+      - label: "A"
+        text: "Занять у друзей"
+        outcome: negative
+        consequence_text: >-
+          Друзья дали деньги, но через неделю требуют назад. Отдать нечем.
+          Дружба испорчена.
+        status_label: "Должник"
+        lesson_text: "Занимать легко, отдавать сложно."
+        next: stage2
+      - label: "B"
+        text: "Взять аванс у родителей за 3 месяца"
+        outcome: negative
+        consequence_text: >-
+          Родители дали аванс, но следующие 3 месяца ты получаешь по
+          500 ₽. Ты купил гаджет, но месяц живёшь в режиме жёсткой
+          экономии.
+        status_label: "В финансовой ловушке"
+        lesson_text: "Аванс — это тоже долг."
+        next: stage2
+      - label: "C"
+        text: "Найти способ заработать (Авито, фриланс, помощь соседям)"
+        outcome: positive
+        consequence_text: >-
+          Правильный подход! Продажа вещей (3-5к), помощь соседям (2к/нед),
+          фриланс (5к). За 3 недели реально заработать 15к.
+        achievement: financial_independence
+        unlock_title: "Где искать подработку подростку"
+        next: stage2
+
+  - key: stage2
+    message: "Стратегия выбрана. Как распределишь время?"
+    choices:
+      - label: "A"
+        text: "Работать каждый день по 4 часа после школы"
+        outcome: negative
+        consequence_text: >-
+          Выгорел через неделю. Оценки упали, друзья обижаются. Заработал
+          10к, но здоровье и отношения испорчены.
+        status_label: "Выгорание"
+        lesson_text: "Баланс работа/учёба/отдых критичен."
+        next: stage3
+      - label: "B"
+        text: "Только выходные по 8 часов"
+        outcome: negative
+        consequence_text: >-
+          Заработал только 8000 ₽. Графика не хватило. Пришлось откладывать
+          покупку.
+        status_label: "Нереалистичное планирование"
+        lesson_text: "Планируй с учётом реальных ресурсов."
+        next: stage3
+      - label: "C"
+        text: "График: 1 час в будни + 4 часа в выходные"
+        outcome: positive
+        consequence_text: >-
+          Идеально! Помощь брату (500₽/день) + Авито/выгул собак в
+          выходные. Заработал 16 000 ₽. Купил гаджет + 1000 ₽ осталось.
+        achievement: time_management
+        unlock_title: "Шаблон «Личный график заработка»"
+        next: stage3
+
+  - key: stage3
+    message: >-
+      Накопил 12 000 ₽. Внезапно: сломался телефон (ремонт 3000 ₽) + день
+      рождения друга (подарок 1500 ₽). Что делаешь?
+    choices:
+      - label: "A"
+        text: "Отложить игру, починить телефон, купить подарок"
+        outcome: positive
+        consequence_text: >-
+          Мудрое решение. Сохранил технику и дружбу. Игру купил через
+          месяц без чувства вины.
+        status_label: "Приоритеты расставлены верно"
+        lesson_text: "Здоровье и отношения важнее развлечений."
+        next: completion
+      - label: "B"
+        text: "Игнорировать проблемы, докупить игру"
+        outcome: negative
+        consequence_text: >-
+          Купил игру. Через 2 дня телефон сломался окончательно (ремонт
+          8000 ₽). Друзья обиделись. Потери превысили экономию.
+        status_label: "Финансовая близорукость"
+        lesson_text: "Экономия на важном = большие расходы потом."
+        next: completion
+      - label: "C"
+        text: "Починить телефон, сделать подарок своими руками"
+        outcome: positive
+        consequence_text: >-
+          Отличный компромисс! Телефон починил, друг в восторге от
+          крафтового подарка. На игру осталось 9000 ₽, докопил за неделю.
+        achievement: financial_maturity
+        lesson_text: "Креативность решает финансовые задачи."
+        next: completion
+
+  - key: completion
+    type: completion
+    message: >-
+      Поздравляю! Ты прошёл карточку "Первый заработок". Ты доказал, что
+      умеешь ставить цели и достигать их своим трудом, сохраняя баланс с
+      учёбой и друзьями.
+    achievement: financial_independence
+    unlock_title: "Гайд «Где искать подработку подростку» + Шаблон резюме"
+
+start_node: stage1
