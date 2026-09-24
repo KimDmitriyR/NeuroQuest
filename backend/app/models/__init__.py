@@ -10,3 +10,5 @@ from app.models.quest_session import QuestSession  # noqa: F401
 from app.models.quest_answer import QuestAnswer  # noqa: F401
 from app.models.player_achievement import PlayerAchievement  # noqa: F401
 from app.models.player_master_code_letter import PlayerMasterCodeLetter  # noqa: F401
+from app.models.envelope_mission import EnvelopeMission  # noqa: F401
+from app.models.mission_attempt import MissionAttempt  # noqa: F401
