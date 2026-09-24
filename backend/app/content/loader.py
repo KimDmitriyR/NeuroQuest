@@ -17,13 +17,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.achievement import Achievement
 from app.models.choice import Choice, ChoiceOutcome
+from app.models.envelope_mission import EnvelopeMission, ValidationType
 from app.models.master_code_letter import MasterCodeLetter
+from app.models.mission_attempt import MissionAttempt  # noqa: F401 (for Base metadata)
 from app.models.quest import Quest
 from app.models.quest_card import QuestCard
 from app.models.quest_node import QuestNode, QuestNodeType
 from app.models.sector import Sector
 
 CARDS_DIR = Path(__file__).parent / "cards"
+MISSIONS_DIR = Path(__file__).parent / "missions"
 
 
 async def _get_or_create_sector(db: AsyncSession, data: dict) -> Sector:
@@ -149,6 +152,58 @@ async def load_card_file(db: AsyncSession, path: Path) -> QuestCard | None:
 
     await db.commit()
     return card
+
+
+async def _get_sector_by_slug(db: AsyncSession, slug: str) -> Sector:
+    result = await db.execute(select(Sector).where(Sector.slug == slug))
+    sector = result.scalar_one_or_none()
+    if sector is None:
+        raise ValueError(f"sector '{slug}' does not exist yet - load its cards first")
+    return sector
+
+
+async def load_mission_file(db: AsyncSession, path: Path) -> EnvelopeMission | None:
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+
+    existing = await db.execute(
+        select(EnvelopeMission).where(EnvelopeMission.title == raw["mission"]["title"])
+    )
+    if existing.scalar_one_or_none() is not None:
+        return None  # already loaded, skip
+
+    if "sector" in raw:
+        sector = await _get_or_create_sector(db, raw["sector"])
+    else:
+        sector = await _get_sector_by_slug(db, raw["sector_slug"])
+
+    achievements_by_key = {
+        entry["key"]: await _get_or_create_achievement(db, entry)
+        for entry in raw.get("achievements", [])
+    }
+
+    mission_data = raw["mission"]
+    mission = EnvelopeMission(
+        sector_id=sector.id,
+        title=mission_data["title"],
+        description=mission_data["description"],
+        instructions=mission_data["instructions"],
+        unlock_condition=mission_data.get("unlock_condition"),
+        validation_type=ValidationType(mission_data["validation_type"]),
+        validation_config=mission_data.get("validation_config"),
+        achievement_id=achievements_by_key[mission_data["achievement"]].id,
+    )
+    db.add(mission)
+    await db.commit()
+    return mission
+
+
+async def load_all_missions(db: AsyncSession) -> list[EnvelopeMission]:
+    loaded = []
+    for path in sorted(MISSIONS_DIR.glob("*.yaml")):
+        mission = await load_mission_file(db, path)
+        if mission is not None:
+            loaded.append(mission)
+    return loaded
 
 
 async def load_all_cards(db: AsyncSession) -> list[QuestCard]:

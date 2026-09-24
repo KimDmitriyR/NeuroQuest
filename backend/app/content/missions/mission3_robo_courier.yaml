@@ -1,0 +1,35 @@
+# Source: КОНВЕРТЫ_С_МИССИЯМИ.docx, МИССИЯ 3 (AI-ЛОГИКА): «Алгоритм навигации
+# "Робо-курьер"»
+#
+# Sector 3 itself isn't seeded yet (no cards loaded for it so far), so this
+# file creates it too. Color hex is a placeholder pick, same caveat as
+# sector 1 - swap for the real design-system value once one exists.
+
+sector:
+  slug: ai-logika
+  title: "AI-Логика"
+  color: "Неоново-фиолетовый"
+  color_token: "#B14EFF"
+  sort_order: 3
+
+mission:
+  title: "Алгоритм навигации «Робо-курьер»"
+  description: >-
+    Собери поле-лабиринт 5×5, расставь препятствия по схеме и "запрограммируй"
+    робота-курьера карточками команд («Вперёд», «Налево», «Направо»), чтобы
+    он доставил груз до цели, не задев препятствия.
+  instructions: >-
+    Шаг 1. Расставь препятствия на поле точно по схеме, робота — на старт,
+    груз — на финиш. Шаг 2. Разложи карточки команд в ряд, составляя
+    алгоритм маршрута. Шаг 3. Проведи фигурку робота по полю строго по
+    разложенным карточкам; если он врезался в препятствие — поменяй одну-две
+    карточки (дебаггинг) и попробуй снова. Сфотографируй поле, когда робот
+    стоит на клетке финиша, а ряд карточек-команд выложен рядом без
+    пропусков.
+  validation_type: photo
+  achievement: algorithmic_navigator
+
+achievements:
+  - key: algorithmic_navigator
+    title: "Алгоритмический навигатор"
+    is_badge: false
