@@ -33,13 +33,12 @@ card:
     У тебя есть 2000 ₽ карманных. Хочешь купить гаджет за 15 000 ₽.
     Родители говорят: «Хочешь деньги — заработай сам».
   qr_token: "finstartup-2-0-01"
-  master_code_letter: "Й"
-  master_code_position: 4
-  # Source text says letter "Т" from the phrase "СОЗДАЙ СВОЙ ПУТЬ" here,
-  # which contradicts every other card and the grand finale section, all of
-  # which spell out "ТВОЙ НОВЫЙ КОД" (Т-В-О-Й-Н-О-В-Ы-Й-К-О-Д). Position 4
-  # of that phrase is "Й", so that's what's used above. Flagged for the
-  # project owner to confirm.
+  master_code_letter: "Т"
+  master_code_position: 1
+  # (Correction: an earlier version of this file mistakenly put "Й"/position 4
+  # here - that fix actually belongs to card 4, which is the one with the
+  # contradictory phrase in the source. This card's own text ("буква «Т»")
+  # matches the grand finale phrase "ТВОЙ НОВЫЙ КОД" with no issue.)
 
 quest:
   title: "Первый заработок"

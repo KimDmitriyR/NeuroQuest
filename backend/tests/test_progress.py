@@ -82,8 +82,8 @@ async def test_master_code_reveals_letter_after_playthrough(client):
 
     body = response.json()
     assert body["unlocked_count"] == 1
-    slot = next(s for s in body["slots"] if s["position"] == 4)
-    assert slot["letter"] == "Й"
+    slot = next(s for s in body["slots"] if s["position"] == 1)
+    assert slot["letter"] == "Т"
     assert slot["unlocked"] is True
 
 

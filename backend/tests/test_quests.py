@@ -85,7 +85,7 @@ async def test_full_playthrough_correct_path_grants_rewards_and_completes(client
     assert stage3["achievement_granted"]["title"] == "Финансовая зрелость"
     assert stage3["completed"] is True
     assert stage3["next_node"] is None
-    assert stage3["master_code_letter"] == {"letter": "Й", "position": 4}
+    assert stage3["master_code_letter"] == {"letter": "Т", "position": 1}
     # the completion badge shares the same title as the stage-1 achievement,
     # already granted once - so it must NOT be granted a second time here
     assert stage3["completion_achievement"] is None
@@ -113,7 +113,7 @@ async def test_wrong_path_still_reaches_completion_with_final_badge(client):
     # never got "Финансовая самостоятельность" along the way, so the
     # completion node grants it for the first time here
     assert stage3["completion_achievement"]["title"] == "Финансовая самостоятельность"
-    assert stage3["master_code_letter"] == {"letter": "Й", "position": 4}
+    assert stage3["master_code_letter"] == {"letter": "Т", "position": 1}
 
 
 async def test_submitting_choice_from_wrong_node_is_rejected(client):
