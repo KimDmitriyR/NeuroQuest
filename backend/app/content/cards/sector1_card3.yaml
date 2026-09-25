@@ -1,0 +1,163 @@
+# Source: квест-задания.docx, СЕКТОР 1 «ФИНСТАРТАП 2.0», КАРТОЧКА 3
+# «ДОНАТ ИЛИ ИНВЕСТИЦИЯ?»
+#
+# Content gap: stage 2 (ЛУТБОКСЫ) in the source only narrates the
+# consequence of choice C. Choices A and B have no written outcome at all.
+# consequence_text for A/B below is a minimal, literal restatement of what
+# each option already says in the bot's own setup text (not new invented
+# facts), just so the engine has something to show.
+
+sector:
+  slug: finstartup-2-0
+  title: "Финстартап 2.0"
+  description: >-
+    Ты — молодой предприниматель. Твоя цель: заработать первые деньги
+    легально и выстроить устойчивую финансовую стратегию.
+  color: "Неоново-бирюзовый"
+  color_token: "#2DE1C2"
+  sort_order: 1
+
+achievements:
+  - key: long_term_planning
+    title: "Долгосрочное планирование"
+    is_badge: false
+  - key: want_need_balance
+    title: "Баланс «хочу» и «надо»"
+    is_badge: false
+  - key: probability_math
+    title: "Математика вероятностей"
+    is_badge: false
+  - key: pro_gamer
+    title: "Про-геймер"
+    is_badge: true
+
+card:
+  number: 3
+  title: "Донат или инвестиция?"
+  intro_text: >-
+    Есть 3000 ₽. Донатить в игру или копить на микрофон для стримов
+    (10 000 ₽)?
+  qr_token: "finstartup-2-0-03"
+  master_code_letter: "О"
+  master_code_position: 3
+
+quest:
+  title: "Донат или инвестиция?"
+
+nodes:
+  - key: stage1
+    message: >-
+      В игре акция: скин + валюта + пропуск за 3000 ₽. Ограничено по
+      времени!
+    choices:
+      - label: "A"
+        text: "Купить скин"
+        outcome: negative
+        consequence_text: >-
+          Купил скин. Через месяц надоел, вышла новая игра. Микрофон так и
+          не купил. 3000 ₽ потрачены на временные эмоции.
+        status_label: "Жертва FOMO"
+        lesson_text: "Донат = эмоции на 2 недели. Инвестиция = доход на годы."
+        next: stage2
+      - label: "B"
+        text: "Не покупать, копить на микрофон"
+        outcome: positive
+        consequence_text: >-
+          Сильное решение! Через 2 месяца купил микрофон, запустил стримы.
+          Через год заработал 50 000 ₽ на донатах.
+        achievement: long_term_planning
+        unlock_title: "Видео «Как начать стримить с нуля»"
+        next: stage2
+      - label: "C"
+        text: "Купить только пропуск за 500 ₽, остальное отложить"
+        outcome: positive
+        consequence_text: >-
+          Разумно! Купил пропуск (валюта вернётся), 2500 ₽ отложил. Через
+          3 месяца купил микрофон.
+        achievement: want_need_balance
+        next: stage2
+
+  - key: stage2
+    message: >-
+      Лутбоксы по 100 ₽. Шанс легендарки 1%. Потратил 500 ₽, ничего не
+      выпало. Друзья: «Ещё немного, точно выпадет!»
+    choices:
+      - label: "A"
+        text: "Тратить ещё 1000 ₽"
+        outcome: negative
+        consequence_text: >-
+          Потратил ещё 1000 ₽ на лутбоксы, не посчитав реальные шансы.
+        status_label: "Азартный игрок"
+        lesson_text: >-
+          1% шанс = в среднем 100 попыток = 10 000 ₽. Легендарку почти
+          всегда можно купить на торговой площадке дешевле.
+        next: stage3
+      - label: "B"
+        text: "Остановиться"
+        outcome: neutral
+        consequence_text: >-
+          Остановился и не потерял больше денег, но не посчитал, во
+          сколько реально обходится погоня за легендаркой через лутбоксы.
+        lesson_text: >-
+          Лутбоксы почти всегда невыгоднее разработчикам, чем игрокам —
+          выгоднее прицельно посчитать шансы, как в варианте C.
+        next: stage3
+      - label: "C"
+        text: >-
+          Посчитать шансы: 1% = 100 попыток = 10 000 ₽. Легендарку можно
+          купить на торговой площадке за 3000 ₽.
+        outcome: positive
+        consequence_text: >-
+          Отлично! Понял математику. Лутбоксы всегда выгоднее
+          разработчикам. Купил предмет на площадке в 3 раза дешевле.
+        achievement: probability_math
+        unlock_title: "Калькулятор «Реальная стоимость лутбокса»"
+        next: stage3
+
+  - key: stage3
+    message: >-
+      Донат и лутбоксы невыгодны. Как получить крутые предметы бесплатно?
+    choices:
+      - label: "A"
+        text: "Фармить 100 часов"
+        outcome: neutral
+        consequence_text: >-
+          Это бесплатный, но очень долгий путь. Давай посчитаем: если
+          редкий предмет можно выбить за 100 часов фарма или купить на
+          торговой площадке за 1000 ₽, то твой час времени стоит всего
+          10 ₽. Ты точно хочешь тратить на это выходные?
+        status_label: "Упорный фармер"
+        lesson_text: >-
+          Время — это тоже ресурс. Иногда проще заработать эти 1000 ₽ на
+          фрилансе за 2 часа, чем фармить 100.
+        next: completion
+      - label: "B"
+        text: "Стать про-игроком, участвовать в турнирах"
+        outcome: positive
+        consequence_text: >-
+          Идеально! Турниры (призовой фонд 50к), стримы (донаты, реклама).
+          Превратил хобби в источник дохода.
+        achievement: pro_gamer
+        lesson_text: "Преврати потребление в создание ценности."
+        next: completion
+      - label: "C"
+        text: "Создавать контент (гайды, стримы)"
+        outcome: positive
+        consequence_text: >-
+          Идеально! Турниры (призовой фонд 50к), стримы (донаты, реклама).
+          Превратил хобби в источник дохода.
+        achievement: pro_gamer
+        lesson_text: "Преврати потребление в создание ценности."
+        next: completion
+
+  - key: completion
+    type: completion
+    message: >-
+      Поздравляю! Ты прошёл карточку "Донат или инвестиция?". Ты понял
+      разницу между эмоциональными тратами и реальными инвестициями, и
+      научился превращать хобби в навык.
+    achievement: pro_gamer
+    unlock_title: >-
+      Видео «Как начать стримить с нуля» + Гайд по поиску турниров
+
+start_node: stage1
