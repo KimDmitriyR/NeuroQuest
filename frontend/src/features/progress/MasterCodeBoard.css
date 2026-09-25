@@ -1,0 +1,41 @@
+.master-code-board {
+  padding: 16px;
+  text-align: center;
+}
+
+.master-code-board__title {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.master-code-board__slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.master-code-board__slot {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #bbb;
+}
+
+.master-code-board__slot--unlocked {
+  border-color: #2de1c2;
+  color: #072019;
+  background: #e9fffa;
+}
+
+.master-code-board__complete {
+  margin-top: 10px;
+  font-weight: 700;
+  color: #0f9d78;
+}

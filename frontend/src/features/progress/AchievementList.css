@@ -1,0 +1,23 @@
+.achievement-list {
+  list-style: none;
+  padding: 0 16px;
+  margin: 0;
+}
+
+.achievement-list__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.achievement-list__icon {
+  font-size: 20px;
+}
+
+.achievement-list__empty {
+  padding: 16px;
+  text-align: center;
+  color: #888;
+}
