@@ -78,9 +78,15 @@ export interface AttemptView {
   status: MissionAttemptStatus;
   photo_url: string | null;
   text_answer: string | null;
+  current_step: number;
   started_at: string;
   submitted_at: string | null;
   completed_at: string | null;
+}
+
+export interface SubmitAttemptResultView extends AttemptView {
+  is_correct: boolean | null;
+  total_steps: number | null;
 }
 
 export interface EarnedAchievementView {
