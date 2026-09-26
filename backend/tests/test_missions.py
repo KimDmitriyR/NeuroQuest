@@ -131,6 +131,17 @@ async def test_get_mission(client, db_session):
     assert response.json()["validation_type"] == "photo"
 
 
+async def test_list_missions(client, db_session):
+    await _mission_id(db_session)  # ensures fixture ran
+
+    response = await client.get("/api/missions")
+
+    assert response.status_code == 200
+    titles = {m["title"] for m in response.json()}
+    assert MISSION_TITLE in titles
+    assert len(response.json()) == 3
+
+
 CIPHER_MISSION_TITLE = "Шифровальная машина «Энигма-лайт»"
 
 

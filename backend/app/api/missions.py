@@ -35,6 +35,14 @@ async def _get_attempt_or_404(service: MissionService, attempt_id: uuid.UUID):
     return attempt
 
 
+@router.get("", response_model=list[MissionView])
+async def list_missions(
+    service: MissionService = Depends(get_mission_service),
+) -> list[MissionView]:
+    missions = await service.mission_repo.list_missions()
+    return [MissionView.model_validate(m) for m in missions]
+
+
 @router.get("/{mission_id}", response_model=MissionView)
 async def get_mission(
     mission_id: uuid.UUID,

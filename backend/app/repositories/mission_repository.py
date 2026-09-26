@@ -17,6 +17,14 @@ class MissionRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_missions(self) -> list[EnvelopeMission]:
+        result = await self.db.execute(
+            select(EnvelopeMission)
+            .where(EnvelopeMission.is_active.is_(True))
+            .order_by(EnvelopeMission.sort_order)
+        )
+        return list(result.scalars().all())
+
     async def get_attempt(self, attempt_id: uuid.UUID) -> MissionAttempt | None:
         result = await self.db.execute(
             select(MissionAttempt).where(MissionAttempt.id == attempt_id)
