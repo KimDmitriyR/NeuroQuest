@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.envelope_mission import EnvelopeMission
 from app.models.mission_attempt import MissionAttempt, MissionAttemptStatus
+from app.models.player import Player
 
 
 class MissionRepository:
@@ -24,6 +25,16 @@ class MissionRepository:
             .order_by(EnvelopeMission.sort_order)
         )
         return list(result.scalars().all())
+
+    async def list_pending_attempts(self) -> list[tuple[MissionAttempt, EnvelopeMission, Player]]:
+        result = await self.db.execute(
+            select(MissionAttempt, EnvelopeMission, Player)
+            .join(EnvelopeMission, EnvelopeMission.id == MissionAttempt.mission_id)
+            .join(Player, Player.id == MissionAttempt.player_id)
+            .where(MissionAttempt.status == MissionAttemptStatus.SUBMITTED)
+            .order_by(MissionAttempt.submitted_at)
+        )
+        return list(result.all())
 
     async def get_attempt(self, attempt_id: uuid.UUID) -> MissionAttempt | None:
         result = await self.db.execute(

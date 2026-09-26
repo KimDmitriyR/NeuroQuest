@@ -50,3 +50,11 @@ class SubmitAttemptResultView(AttemptView):
     # None for photo missions (nothing auto-checked, always needs review)
     is_correct: bool | None
     total_steps: int | None
+
+
+class PendingAttemptView(BaseModel):
+    id: uuid.UUID
+    player_name: str
+    mission_title: str
+    photo_url: str | None
+    submitted_at: datetime

@@ -9,6 +9,7 @@ from app.repositories.quest_session_repository import QuestSessionRepository
 from app.schemas.mission import (
     AttemptView,
     MissionView,
+    PendingAttemptView,
     ReviewAttemptRequest,
     StartAttemptRequest,
     SubmitAttemptRequest,
@@ -41,6 +42,26 @@ async def list_missions(
 ) -> list[MissionView]:
     missions = await service.mission_repo.list_missions()
     return [MissionView.model_validate(m) for m in missions]
+
+
+@router.get("/attempts/pending", response_model=list[PendingAttemptView])
+async def list_pending_attempts(
+    service: MissionService = Depends(get_mission_service),
+) -> list[PendingAttemptView]:
+    # NOTE: unauthenticated for now, like the review endpoint below - this
+    # is a moderator/parent view and should move behind that role once
+    # auth exists (see plan).
+    rows = await service.mission_repo.list_pending_attempts()
+    return [
+        PendingAttemptView(
+            id=attempt.id,
+            player_name=player.name,
+            mission_title=mission.title,
+            photo_url=attempt.photo_url,
+            submitted_at=attempt.submitted_at,
+        )
+        for attempt, mission, player in rows
+    ]
 
 
 @router.get("/{mission_id}", response_model=MissionView)

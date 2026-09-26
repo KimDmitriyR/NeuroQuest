@@ -142,6 +142,32 @@ async def test_list_missions(client, db_session):
     assert len(response.json()) == 3
 
 
+async def test_pending_queue_lists_submitted_and_shrinks_after_review(
+    client, db_session
+):
+    mission_id = await _mission_id(db_session)
+    player_id = await _create_player(client)
+
+    start = await client.post(
+        f"/api/missions/{mission_id}/attempts", json={"player_id": player_id}
+    )
+    attempt_id = start.json()["id"]
+    await client.post(
+        f"/api/missions/attempts/{attempt_id}/submit",
+        json={"photo_url": "data:image/jpeg;base64,ZmFrZQ=="},
+    )
+
+    pending = await client.get("/api/missions/attempts/pending")
+    assert any(a["id"] == attempt_id for a in pending.json())
+
+    await client.post(
+        f"/api/missions/attempts/{attempt_id}/review", json={"approved": True}
+    )
+
+    pending_after = await client.get("/api/missions/attempts/pending")
+    assert not any(a["id"] == attempt_id for a in pending_after.json())
+
+
 CIPHER_MISSION_TITLE = "Шифровальная машина «Энигма-лайт»"
 
 
