@@ -51,36 +51,56 @@ class MissionService:
         attempt: MissionAttempt,
         photo_url: str | None,
         text_answer: str | None,
-    ) -> MissionAttempt:
+    ) -> tuple[MissionAttempt, bool | None]:
+        """Returns (attempt, is_correct). is_correct is None for photo
+        missions (nothing to check yet - always needs manual review)."""
         if attempt.status != MissionAttemptStatus.IN_PROGRESS:
             raise InvalidAttemptStateError("attempt is not in progress")
 
         mission = await self.mission_repo.get_mission(attempt.mission_id)
-        attempt.photo_url = photo_url
+        attempt.photo_url = photo_url or attempt.photo_url
         attempt.text_answer = text_answer
         attempt.submitted_at = datetime.now(timezone.utc)
 
-        if mission.validation_type == ValidationType.TEXT:
-            expected = (mission.validation_config or {}).get("answer", "")
+        if mission.validation_type != ValidationType.TEXT:
+            # photo missions can't be auto-checked (no CV in the MVP) -
+            # always needs a manual review via review_attempt()
+            attempt.status = MissionAttemptStatus.SUBMITTED
+            await self.mission_repo.db.commit()
+            return attempt, None
+
+        steps = (mission.validation_config or {}).get("steps")
+        if steps:
+            expected = steps[attempt.current_step]["answer"]
             is_correct = (
                 text_answer is not None
                 and text_answer.strip().lower() == expected.strip().lower()
             )
-            attempt.status = (
-                MissionAttemptStatus.APPROVED
-                if is_correct
-                else MissionAttemptStatus.REJECTED
-            )
             if is_correct:
-                await self._grant_reward(attempt, mission)
-                attempt.completed_at = datetime.now(timezone.utc)
-        else:
-            # photo missions can't be auto-checked (no CV in the MVP) -
-            # always needs a manual review via review_attempt()
-            attempt.status = MissionAttemptStatus.SUBMITTED
+                attempt.current_step += 1
+                if attempt.current_step >= len(steps):
+                    attempt.status = MissionAttemptStatus.APPROVED
+                    attempt.completed_at = datetime.now(timezone.utc)
+                    await self._grant_reward(attempt, mission)
+            # wrong answer: stay IN_PROGRESS, let them retry the same step
+            await self.mission_repo.db.commit()
+            return attempt, is_correct
+
+        # single-answer TEXT mission (kept for missions with just one answer)
+        expected = (mission.validation_config or {}).get("answer", "")
+        is_correct = (
+            text_answer is not None
+            and text_answer.strip().lower() == expected.strip().lower()
+        )
+        attempt.status = (
+            MissionAttemptStatus.APPROVED if is_correct else MissionAttemptStatus.REJECTED
+        )
+        if is_correct:
+            await self._grant_reward(attempt, mission)
+            attempt.completed_at = datetime.now(timezone.utc)
 
         await self.mission_repo.db.commit()
-        return attempt
+        return attempt, is_correct
 
     async def review_attempt(
         self, attempt: MissionAttempt, approved: bool

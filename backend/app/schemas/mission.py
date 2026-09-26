@@ -39,6 +39,13 @@ class AttemptView(BaseModel):
     status: MissionAttemptStatus
     photo_url: str | None
     text_answer: str | None
+    current_step: int
     started_at: datetime
     submitted_at: datetime | None
     completed_at: datetime | None
+
+
+class SubmitAttemptResultView(AttemptView):
+    # None for photo missions (nothing auto-checked, always needs review)
+    is_correct: bool | None
+    total_steps: int | None

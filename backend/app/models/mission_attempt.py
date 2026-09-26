@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,6 +35,9 @@ class MissionAttempt(Base):
         nullable=False,
         default=MissionAttemptStatus.IN_PROGRESS,
     )
+    # for multi-step TEXT missions (validation_config -> {"steps": [...]}):
+    # how many steps have been solved correctly so far
+    current_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     text_answer: Mapped[str | None] = mapped_column(Text, nullable=True)

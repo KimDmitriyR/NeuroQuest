@@ -1,0 +1,40 @@
+# Source: КОНВЕРТЫ_С_МИССИЯМИ.docx (concept) + миссии_2_и_3.docx (concrete
+# cipher content). МИССИЯ 2 (КиберЩит): «Шифровальная машина "Энигма-лайт"».
+#
+# Mechanism: Caesar cipher, shift 9 over the 33-letter Russian alphabet
+# (verified: all 4 pairs below decode correctly with that shift). The
+# player doesn't need to know the shift - decoding is done with the
+# physical device; the PWA just checks the typed plaintext against each
+# step's answer, in order. 4 steps, last one is the "final" phrase.
+
+sector_slug: kibershchit
+
+mission:
+  title: "Шифровальная машина «Энигма-лайт»"
+  description: >-
+    Раскрути шифровальный диск и расшифруй 4 сообщения по шифру Цезаря,
+    вводя расшифрованную фразу на каждом шаге.
+  instructions: >-
+    Шаг 1. Установи диски шифровальной машины в стартовое положение.
+    Шаг 2. Для каждого зашифрованного сообщения подбери сдвиг диска, при
+    котором текст превращается в осмысленную фразу, и введи расшифрованную
+    фразу в поле ответа. Шаг 3. После правильного ответа откроется
+    следующее зашифрованное сообщение. Всего 4 сообщения, последнее —
+    финальное.
+  validation_type: text
+  validation_config:
+    steps:
+      - cipher: "УИШСЫИФ ЩИЪЫНЫ К ЫСБСЦН"
+        answer: "КАПИТАЛ РАСТЕТ В ТИШИНЕ"
+      - cipher: "ЫКЧТ ШИЩЧФЕ ЫКЧТ ВСЫ"
+        answer: "ТВОЙ ПАРОЛЬ ТВОЙ ЩИТ"
+      - cipher: "РИШЩЧЪ ЧШЩНМНФЗНЫ ЧЫКНЫ"
+        answer: "ЗАПРОС ОПРЕДЕЛЯЕТ ОТВЕТ"
+      - cipher: "ЙЬМЬВНН ЬПН РМНЪЕ"
+        answer: "БУДУЩЕЕ УЖЕ ЗДЕСЬ"
+  achievement: cryptographer
+
+achievements:
+  - key: cryptographer
+    title: "Криптограф"
+    is_badge: false

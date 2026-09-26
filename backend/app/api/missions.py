@@ -12,6 +12,7 @@ from app.schemas.mission import (
     ReviewAttemptRequest,
     StartAttemptRequest,
     SubmitAttemptRequest,
+    SubmitAttemptResultView,
 )
 from app.services.mission_service import (
     AttemptNotFoundError,
@@ -58,20 +59,28 @@ async def start_attempt(
     return AttemptView.model_validate(attempt)
 
 
-@router.post("/attempts/{attempt_id}/submit", response_model=AttemptView)
+@router.post("/attempts/{attempt_id}/submit", response_model=SubmitAttemptResultView)
 async def submit_attempt(
     attempt_id: uuid.UUID,
     payload: SubmitAttemptRequest,
     service: MissionService = Depends(get_mission_service),
-) -> AttemptView:
+) -> SubmitAttemptResultView:
     attempt = await _get_attempt_or_404(service, attempt_id)
     try:
-        attempt = await service.submit_attempt(
+        attempt, is_correct = await service.submit_attempt(
             attempt, payload.photo_url, payload.text_answer
         )
     except InvalidAttemptStateError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    return AttemptView.model_validate(attempt)
+
+    mission = await service.mission_repo.get_mission(attempt.mission_id)
+    steps = (mission.validation_config or {}).get("steps") if mission else None
+
+    return SubmitAttemptResultView(
+        **AttemptView.model_validate(attempt).model_dump(),
+        is_correct=is_correct,
+        total_steps=len(steps) if steps else None,
+    )
 
 
 @router.post("/attempts/{attempt_id}/review", response_model=AttemptView)
