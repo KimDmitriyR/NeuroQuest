@@ -1,5 +1,10 @@
 import { api } from "./client";
-import type { AttemptView, MissionView, SubmitAttemptResultView } from "../types/api";
+import type {
+  AttemptView,
+  MissionView,
+  PendingAttemptView,
+  SubmitAttemptResultView,
+} from "../types/api";
 
 export const missionsApi = {
   list: () => api.get<MissionView[]>("/api/missions"),
@@ -13,4 +18,7 @@ export const missionsApi = {
       photo_url: photoUrl ?? null,
       text_answer: textAnswer ?? null,
     }),
+  listPending: () => api.get<PendingAttemptView[]>("/api/missions/attempts/pending"),
+  reviewAttempt: (attemptId: string, approved: boolean) =>
+    api.post<AttemptView>(`/api/missions/attempts/${attemptId}/review`, { approved }),
 };

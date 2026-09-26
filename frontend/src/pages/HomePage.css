@@ -63,6 +63,14 @@
   text-decoration: none;
 }
 
+.home-page__parent-link {
+  display: block;
+  margin-top: 12px;
+  color: #999;
+  font-size: 12px;
+  text-decoration: none;
+}
+
 .home-page__status {
   text-align: center;
   margin-top: 60px;

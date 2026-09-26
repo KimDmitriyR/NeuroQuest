@@ -90,6 +90,14 @@ export interface SubmitAttemptResultView extends AttemptView {
   total_steps: number | null;
 }
 
+export interface PendingAttemptView {
+  id: string;
+  player_name: string;
+  mission_title: string;
+  photo_url: string | null;
+  submitted_at: string;
+}
+
 export interface EarnedAchievementView {
   title: string;
   description: string | null;

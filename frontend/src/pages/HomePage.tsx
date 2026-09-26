@@ -76,6 +76,9 @@ export function HomePage() {
       <a className="home-page__profile-link" href="/profile">
         Мой профиль →
       </a>
+      <a className="home-page__parent-link" href="/review">
+        Для родителей: проверка миссий
+      </a>
     </div>
   );
 }
