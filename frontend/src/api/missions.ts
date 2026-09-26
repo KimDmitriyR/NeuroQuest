@@ -2,6 +2,7 @@ import { api } from "./client";
 import type { AttemptView, MissionView, SubmitAttemptResultView } from "../types/api";
 
 export const missionsApi = {
+  list: () => api.get<MissionView[]>("/api/missions"),
   get: (missionId: string) => api.get<MissionView>(`/api/missions/${missionId}`),
   startAttempt: (missionId: string, playerId: string) =>
     api.post<AttemptView>(`/api/missions/${missionId}/attempts`, {

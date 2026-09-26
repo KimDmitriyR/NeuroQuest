@@ -70,6 +70,9 @@ export function HomePage() {
         </button>
       </form>
       {error && <div className="home-page__error">{error}</div>}
+      <a className="home-page__profile-link" href="/missions">
+        Конверты с миссиями →
+      </a>
       <a className="home-page__profile-link" href="/profile">
         Мой профиль →
       </a>

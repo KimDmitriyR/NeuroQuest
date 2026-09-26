@@ -65,6 +65,7 @@ export type MissionAttemptStatus =
 
 export interface MissionView {
   id: string;
+  sector_id: string;
   title: string;
   description: string;
   instructions: string;

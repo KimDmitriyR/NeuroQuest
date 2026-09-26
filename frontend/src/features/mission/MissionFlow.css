@@ -1,0 +1,89 @@
+.mission-flow {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: system-ui, sans-serif;
+}
+
+.mission-flow h1 {
+  color: #6a1fc9;
+  font-size: 22px;
+}
+
+.mission-flow__description {
+  color: #444;
+}
+
+.mission-flow__instructions {
+  white-space: pre-wrap;
+  background: #f6ecff;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #3a1a5c;
+}
+
+.mission-flow__start {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #b14eff;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.mission-flow__start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mission-flow__step-label {
+  font-weight: 700;
+  color: #6a1fc9;
+  margin-bottom: 6px;
+}
+
+.mission-flow__cipher-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.mission-flow__cipher-input:focus {
+  outline: none;
+  border-color: #b14eff;
+}
+
+.mission-flow__feedback {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.mission-flow__feedback--wrong {
+  background: #fde3e3;
+  color: #9c1c1c;
+}
+
+.mission-flow__pending {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff6d8;
+  color: #6b5a1e;
+}
+
+.mission-flow__status {
+  text-align: center;
+  margin-top: 60px;
+  color: #666;
+}
