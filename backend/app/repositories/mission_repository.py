@@ -26,12 +26,17 @@ class MissionRepository:
         )
         return list(result.scalars().all())
 
-    async def list_pending_attempts(self) -> list[tuple[MissionAttempt, EnvelopeMission, Player]]:
+    async def list_pending_attempts(
+        self, parent_id: uuid.UUID
+    ) -> list[tuple[MissionAttempt, EnvelopeMission, Player]]:
         result = await self.db.execute(
             select(MissionAttempt, EnvelopeMission, Player)
             .join(EnvelopeMission, EnvelopeMission.id == MissionAttempt.mission_id)
             .join(Player, Player.id == MissionAttempt.player_id)
-            .where(MissionAttempt.status == MissionAttemptStatus.SUBMITTED)
+            .where(
+                MissionAttempt.status == MissionAttemptStatus.SUBMITTED,
+                Player.parent_id == parent_id,
+            )
             .order_by(MissionAttempt.submitted_at)
         )
         return list(result.all())

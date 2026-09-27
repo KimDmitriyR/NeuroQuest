@@ -16,8 +16,8 @@ class PlayerRepository:
         result = await self.db.execute(select(Player).where(Player.id == player_id))
         return result.scalar_one_or_none()
 
-    async def create(self, name: str) -> Player:
-        player = Player(name=name)
+    async def create(self, name: str, parent_id: uuid.UUID) -> Player:
+        player = Player(name=name, parent_id=parent_id)
         self.db.add(player)
         await self.db.commit()
         await self.db.refresh(player)

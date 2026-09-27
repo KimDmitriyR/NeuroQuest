@@ -3,8 +3,10 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import get_current_parent, get_db
+from app.models.parent_account import ParentAccount
 from app.repositories.mission_repository import MissionRepository
+from app.repositories.player_repository import PlayerRepository
 from app.repositories.quest_session_repository import QuestSessionRepository
 from app.schemas.mission import (
     AttemptView,
@@ -46,12 +48,10 @@ async def list_missions(
 
 @router.get("/attempts/pending", response_model=list[PendingAttemptView])
 async def list_pending_attempts(
+    parent: ParentAccount = Depends(get_current_parent),
     service: MissionService = Depends(get_mission_service),
 ) -> list[PendingAttemptView]:
-    # NOTE: unauthenticated for now, like the review endpoint below - this
-    # is a moderator/parent view and should move behind that role once
-    # auth exists (see plan).
-    rows = await service.mission_repo.list_pending_attempts()
+    rows = await service.mission_repo.list_pending_attempts(parent.id)
     return [
         PendingAttemptView(
             id=attempt.id,
@@ -116,11 +116,16 @@ async def submit_attempt(
 async def review_attempt(
     attempt_id: uuid.UUID,
     payload: ReviewAttemptRequest,
+    parent: ParentAccount = Depends(get_current_parent),
     service: MissionService = Depends(get_mission_service),
+    db: AsyncSession = Depends(get_db),
 ) -> AttemptView:
-    # NOTE: unauthenticated for now, like the rest of the API - this should
-    # move behind a moderator/parent role once auth exists (see plan).
     attempt = await _get_attempt_or_404(service, attempt_id)
+
+    owner = await PlayerRepository(db).get_by_id(attempt.player_id)
+    if owner is None or owner.parent_id != parent.id:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+
     try:
         attempt = await service.review_attempt(attempt, payload.approved)
     except InvalidAttemptStateError as exc:

@@ -4,7 +4,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
+from app.api.auth import router as auth_router
 from app.api.missions import router as missions_router
+from app.api.parents import router as parents_router
 from app.api.players import router as players_router
 from app.api.quests import router as quests_router
 from app.core.config import settings
@@ -22,6 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+app.include_router(parents_router)
 app.include_router(players_router)
 app.include_router(quests_router)
 app.include_router(missions_router)

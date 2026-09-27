@@ -14,8 +14,8 @@ class PlayerService:
     def __init__(self, repository: PlayerRepository):
         self.repository = repository
 
-    async def create_player(self, name: str) -> Player:
-        return await self.repository.create(name=name)
+    async def create_player(self, name: str, parent_id: uuid.UUID) -> Player:
+        return await self.repository.create(name=name, parent_id=parent_id)
 
     async def get_player(self, player_id: uuid.UUID) -> Player:
         player = await self.repository.get_by_id(player_id)

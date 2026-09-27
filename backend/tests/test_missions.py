@@ -24,7 +24,18 @@ async def _mission_id(db_session: AsyncSession) -> str:
 
 
 async def _create_player(client) -> str:
-    response = await client.post("/api/players", json={"name": "Тест"})
+    import uuid as _uuid
+
+    email = f"parent-{_uuid.uuid4()}@example.com"
+    reg = await client.post(
+        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+    )
+    token = reg.json()["access_token"]
+    response = await client.post(
+        "/api/players",
+        json={"name": "Тест"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
     return response.json()["id"]
 
 
@@ -66,7 +77,7 @@ async def test_start_attempt_unknown_mission_returns_404(client):
 
 async def test_photo_mission_full_flow_needs_manual_review(client, db_session):
     mission_id = await _mission_id(db_session)
-    player_id = await _create_player(client)
+    player_id, headers = await _create_player_with_headers(client)
 
     start = await client.post(
         f"/api/missions/{mission_id}/attempts", json={"player_id": player_id}
@@ -80,7 +91,9 @@ async def test_photo_mission_full_flow_needs_manual_review(client, db_session):
     assert submit.json()["status"] == "submitted"
 
     review = await client.post(
-        f"/api/missions/attempts/{attempt_id}/review", json={"approved": True}
+        f"/api/missions/attempts/{attempt_id}/review",
+        json={"approved": True},
+        headers=headers,
     )
     assert review.json()["status"] == "approved"
     assert review.json()["completed_at"] is not None
@@ -88,7 +101,7 @@ async def test_photo_mission_full_flow_needs_manual_review(client, db_session):
 
 async def test_rejected_attempt_grants_no_achievement(client, db_session):
     mission_id = await _mission_id(db_session)
-    player_id = await _create_player(client)
+    player_id, headers = await _create_player_with_headers(client)
 
     start = await client.post(
         f"/api/missions/{mission_id}/attempts", json={"player_id": player_id}
@@ -100,7 +113,9 @@ async def test_rejected_attempt_grants_no_achievement(client, db_session):
     )
 
     review = await client.post(
-        f"/api/missions/attempts/{attempt_id}/review", json={"approved": False}
+        f"/api/missions/attempts/{attempt_id}/review",
+        json={"approved": False},
+        headers=headers,
     )
 
     assert review.json()["status"] == "rejected"
@@ -108,7 +123,7 @@ async def test_rejected_attempt_grants_no_achievement(client, db_session):
 
 async def test_cannot_review_before_submit(client, db_session):
     mission_id = await _mission_id(db_session)
-    player_id = await _create_player(client)
+    player_id, headers = await _create_player_with_headers(client)
 
     start = await client.post(
         f"/api/missions/{mission_id}/attempts", json={"player_id": player_id}
@@ -116,7 +131,9 @@ async def test_cannot_review_before_submit(client, db_session):
     attempt_id = start.json()["id"]
 
     response = await client.post(
-        f"/api/missions/attempts/{attempt_id}/review", json={"approved": True}
+        f"/api/missions/attempts/{attempt_id}/review",
+        json={"approved": True},
+        headers=headers,
     )
 
     assert response.status_code == 400
@@ -142,11 +159,24 @@ async def test_list_missions(client, db_session):
     assert len(response.json()) == 3
 
 
+async def _create_player_with_headers(client) -> tuple[str, dict]:
+    import uuid as _uuid
+
+    email = f"parent-{_uuid.uuid4()}@example.com"
+    reg = await client.post(
+        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+    )
+    token = reg.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await client.post("/api/players", json={"name": "Тест"}, headers=headers)
+    return response.json()["id"], headers
+
+
 async def test_pending_queue_lists_submitted_and_shrinks_after_review(
     client, db_session
 ):
     mission_id = await _mission_id(db_session)
-    player_id = await _create_player(client)
+    player_id, headers = await _create_player_with_headers(client)
 
     start = await client.post(
         f"/api/missions/{mission_id}/attempts", json={"player_id": player_id}
@@ -157,15 +187,52 @@ async def test_pending_queue_lists_submitted_and_shrinks_after_review(
         json={"photo_url": "data:image/jpeg;base64,ZmFrZQ=="},
     )
 
-    pending = await client.get("/api/missions/attempts/pending")
+    pending = await client.get("/api/missions/attempts/pending", headers=headers)
     assert any(a["id"] == attempt_id for a in pending.json())
 
     await client.post(
-        f"/api/missions/attempts/{attempt_id}/review", json={"approved": True}
+        f"/api/missions/attempts/{attempt_id}/review",
+        json={"approved": True},
+        headers=headers,
     )
 
-    pending_after = await client.get("/api/missions/attempts/pending")
+    pending_after = await client.get("/api/missions/attempts/pending", headers=headers)
     assert not any(a["id"] == attempt_id for a in pending_after.json())
+
+
+async def test_pending_queue_requires_auth(client):
+    response = await client.get("/api/missions/attempts/pending")
+    assert response.status_code == 401
+
+
+async def test_pending_queue_only_shows_own_children(client, db_session):
+    mission_id = await _mission_id(db_session)
+    _player_id, _headers = await _create_player_with_headers(client)
+    other_player_id, other_headers = await _create_player_with_headers(client)
+
+    start = await client.post(
+        f"/api/missions/{mission_id}/attempts", json={"player_id": other_player_id}
+    )
+    attempt_id = start.json()["id"]
+    await client.post(
+        f"/api/missions/attempts/{attempt_id}/submit",
+        json={"photo_url": "data:image/jpeg;base64,ZmFrZQ=="},
+    )
+
+    pending = await client.get("/api/missions/attempts/pending", headers=_headers)
+    assert not any(a["id"] == attempt_id for a in pending.json())
+
+    pending_owner = await client.get(
+        "/api/missions/attempts/pending", headers=other_headers
+    )
+    assert any(a["id"] == attempt_id for a in pending_owner.json())
+
+    forbidden_review = await client.post(
+        f"/api/missions/attempts/{attempt_id}/review",
+        json={"approved": True},
+        headers=_headers,
+    )
+    assert forbidden_review.status_code == 404
 
 
 CIPHER_MISSION_TITLE = "Шифровальная машина «Энигма-лайт»"

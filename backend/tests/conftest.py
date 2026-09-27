@@ -62,3 +62,16 @@ async def client():
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def auth_headers(client):
+    """Registers a fresh parent account and returns Authorization headers."""
+    import uuid as _uuid
+
+    email = f"parent-{_uuid.uuid4()}@example.com"
+    response = await client.post(
+        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+    )
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}

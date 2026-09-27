@@ -3,7 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import get_current_parent, get_db
+from app.models.parent_account import ParentAccount
 from app.repositories.player_repository import PlayerRepository
 from app.repositories.progress_repository import ProgressRepository
 from app.schemas.player import PlayerCreate, PlayerRead
@@ -30,9 +31,10 @@ def get_progress_service(db: AsyncSession = Depends(get_db)) -> ProgressService:
 @router.post("", response_model=PlayerRead, status_code=201)
 async def create_player(
     payload: PlayerCreate,
+    parent: ParentAccount = Depends(get_current_parent),
     service: PlayerService = Depends(get_player_service),
 ) -> PlayerRead:
-    player = await service.create_player(name=payload.name)
+    player = await service.create_player(name=payload.name, parent_id=parent.id)
     return PlayerRead.model_validate(player)
 
 

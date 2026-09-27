@@ -14,7 +14,18 @@ async def _seed_content(db_session: AsyncSession):
 
 
 async def _create_player(client) -> str:
-    response = await client.post("/api/players", json={"name": "Тест"})
+    import uuid as _uuid
+
+    email = f"parent-{_uuid.uuid4()}@example.com"
+    reg = await client.post(
+        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+    )
+    token = reg.json()["access_token"]
+    response = await client.post(
+        "/api/players",
+        json={"name": "Тест"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
     return response.json()["id"]
 
 
