@@ -5,6 +5,18 @@ export interface Player {
   updated_at: string;
 }
 
+export interface ParentRead {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  parent: ParentRead;
+}
+
 export type ChoiceOutcome = "positive" | "neutral" | "negative";
 export type QuestNodeType = "choice" | "completion";
 export type QuestSessionStatus = "in_progress" | "completed";

@@ -1,0 +1,35 @@
+.child-card {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.child-card__name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.child-card__stats {
+  display: flex;
+  gap: 16px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.child-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.child-card__actions button {
+  padding: 8px 12px;
+  border: 1px solid #0f9d78;
+  border-radius: 8px;
+  background: white;
+  color: #0f9d78;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}

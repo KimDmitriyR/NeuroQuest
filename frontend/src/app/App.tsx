@@ -7,6 +7,9 @@ import { MissionsPage } from "../pages/MissionsPage";
 import { MissionPage } from "../pages/MissionPage";
 import { ReviewPage } from "../pages/ReviewPage";
 import { FinalePage } from "../pages/FinalePage";
+import { ParentAuthPage } from "../pages/ParentAuthPage";
+import { ParentDashboardPage } from "../pages/ParentDashboardPage";
+import { PARENT_TOKEN_KEY } from "../api/client";
 
 const queryClient = new QueryClient();
 
@@ -22,8 +25,14 @@ export function App() {
           <Route path="/mission/:missionId" element={<MissionPage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/finale" element={<FinalePage />} />
+          <Route path="/parent" element={<ParentAuthOrDashboard />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
   );
+}
+
+function ParentAuthOrDashboard() {
+  const hasToken = !!localStorage.getItem(PARENT_TOKEN_KEY);
+  return hasToken ? <ParentDashboardPage /> : <ParentAuthPage />;
 }

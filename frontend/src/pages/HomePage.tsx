@@ -6,21 +6,14 @@ import { ApiError } from "../api/client";
 import "./HomePage.css";
 
 export function HomePage() {
-  const { player, loading, createPlayer } = usePlayer();
+  const { player, loading } = usePlayer();
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
   const [qrToken, setQrToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
   if (loading) return <div className="home-page__status">Загрузка...</div>;
-
-  const handleCreatePlayer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    await createPlayer(name.trim());
-  };
 
   const handleStartQuest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,15 +34,13 @@ export function HomePage() {
     return (
       <div className="home-page">
         <h1>NeuroQuest</h1>
-        <form onSubmit={handleCreatePlayer} className="home-page__form">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Как тебя зовут?"
-            autoFocus
-          />
-          <button type="submit">Начать</button>
-        </form>
+        <p className="home-page__hint">
+          Чтобы начать играть, попроси родителя открыть личный кабинет и
+          создать тебе профиль.
+        </p>
+        <a className="home-page__parent-link" href="/parent">
+          Кабинет родителя →
+        </a>
       </div>
     );
   }
@@ -76,8 +67,8 @@ export function HomePage() {
       <a className="home-page__profile-link" href="/profile">
         Мой профиль →
       </a>
-      <a className="home-page__parent-link" href="/review">
-        Для родителей: проверка миссий
+      <a className="home-page__parent-link" href="/parent">
+        Кабинет родителя
       </a>
     </div>
   );
