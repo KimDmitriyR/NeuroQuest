@@ -13,6 +13,10 @@ venv/
 node_modules/
 dist/
 
+# Generated print assets (QR codes, card fronts) - regenerate with
+# python -m scripts.generate_qr_codes
+backend/print_assets/
+
 # IDE
 .idea/
 .vscode/
