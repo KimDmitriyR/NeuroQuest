@@ -7,6 +7,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+from app.core import windows_compat
+
+windows_compat.apply()  # must run before asyncio.run() below
+
 from app.core.config import settings
 from app.db.base import Base
 from app import models  # noqa: F401  (ensures models are registered on Base.metadata)

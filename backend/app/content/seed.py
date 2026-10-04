@@ -2,6 +2,10 @@
 
 import asyncio
 
+from app.core import windows_compat
+
+windows_compat.apply()  # must run before asyncio.run() below
+
 from app.content.loader import load_all_cards, load_all_missions
 from app.db.session import AsyncSessionLocal
 

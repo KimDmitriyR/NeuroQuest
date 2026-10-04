@@ -1,5 +1,9 @@
 import os
 
+from app.core import windows_compat
+
+windows_compat.apply()  # must run before pytest-asyncio creates any event loop
+
 # Point the app at a dedicated test database BEFORE importing anything from `app`,
 # since app.core.config.settings is instantiated at import time.
 os.environ.setdefault(

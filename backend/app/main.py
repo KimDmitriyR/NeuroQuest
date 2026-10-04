@@ -1,3 +1,7 @@
+from app.core import windows_compat
+
+windows_compat.apply()  # must run before uvicorn creates its event loop
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
