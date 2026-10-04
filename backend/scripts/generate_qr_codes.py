@@ -23,8 +23,43 @@ from app.models.quest_card import QuestCard
 from app.models.sector import Sector
 
 OUTPUT_DIR = Path(__file__).parent.parent / "print_assets"
-FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+# Cyrillic-capable TTF candidates per platform, checked in order - the card
+# titles are in Russian, so this can't just fall back to PIL's tiny built-in
+# bitmap font (it has no Cyrillic glyphs at all).
+_BOLD_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Linux
+    "C:\\Windows\\Fonts\\arialbd.ttf",  # Windows
+    "C:\\Windows\\Fonts\\segoeuib.ttf",  # Windows fallback
+    "/Library/Fonts/Arial Bold.ttf",  # macOS
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",  # macOS fallback
+]
+_REGULAR_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Linux
+    "C:\\Windows\\Fonts\\arial.ttf",  # Windows
+    "C:\\Windows\\Fonts\\segoeui.ttf",  # Windows fallback
+    "/Library/Fonts/Arial.ttf",  # macOS
+    "/System/Library/Fonts/Supplemental/Arial.ttf",  # macOS fallback
+]
+
+
+def _find_font(candidates: list[str]) -> str | None:
+    for path in candidates:
+        if Path(path).exists():
+            return path
+    return None
+
+
+FONT_BOLD = _find_font(_BOLD_CANDIDATES)
+FONT_REGULAR = _find_font(_REGULAR_CANDIDATES)
+
+if FONT_BOLD is None or FONT_REGULAR is None:
+    print(
+        "WARNING: no Cyrillic-capable TTF font found on this system - card "
+        "front titles will render as boxes/garbage. QR codes themselves are "
+        "unaffected. Install a font (e.g. DejaVu Sans) or edit "
+        "_BOLD_CANDIDATES/_REGULAR_CANDIDATES in this script to point at one."
+    )
 
 
 def slugify(text: str) -> str:
@@ -49,8 +84,12 @@ def make_card_front(title: str, subtitle: str, color_hex: str, qr_img: Image.Ima
     header_h = 160
     draw.rectangle([0, 0, width, header_h], fill=color_hex)
 
-    title_font = ImageFont.truetype(FONT_BOLD, 40)
-    subtitle_font = ImageFont.truetype(FONT_REGULAR, 24)
+    title_font = (
+        ImageFont.truetype(FONT_BOLD, 40) if FONT_BOLD else ImageFont.load_default()
+    )
+    subtitle_font = (
+        ImageFont.truetype(FONT_REGULAR, 24) if FONT_REGULAR else ImageFont.load_default()
+    )
 
     _wrapped_text(draw, title, title_font, width - 60, (30, 30), fill="white")
     _wrapped_text(draw, subtitle, subtitle_font, width - 60, (30, header_h + 30), fill="#333333")
