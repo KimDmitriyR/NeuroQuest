@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,8 +24,19 @@ class ParentRepository:
         )
         return result.scalar_one_or_none()
 
-    async def create(self, email: str, password_hash: str) -> ParentAccount:
-        parent = ParentAccount(email=email, password_hash=password_hash)
+    async def create(
+        self,
+        email: str,
+        password_hash: str,
+        terms_accepted_at: datetime,
+        terms_version: str,
+    ) -> ParentAccount:
+        parent = ParentAccount(
+            email=email,
+            password_hash=password_hash,
+            terms_accepted_at=terms_accepted_at,
+            terms_version=terms_version,
+        )
         self.db.add(parent)
         await self.db.commit()
         await self.db.refresh(parent)

@@ -19,6 +19,15 @@ class ParentAccount(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
+    # consent to the Terms of Use + Privacy Policy, given at registration -
+    # covers the parent's own data AND, since children never register
+    # themselves, their consent as the child's legal representative too.
+    # terms_version lets us detect "policy changed since you agreed" later.
+    terms_accepted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    terms_version: Mapped[str] = mapped_column(String(20), nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

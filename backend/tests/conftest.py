@@ -75,7 +75,7 @@ async def auth_headers(client):
 
     email = f"parent-{_uuid.uuid4()}@example.com"
     response = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

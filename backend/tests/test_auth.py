@@ -4,7 +4,8 @@ PASSWORD = "supersecret123"
 
 async def test_register_creates_parent_and_returns_token(client):
     response = await client.post(
-        "/api/auth/register", json={"email": EMAIL, "password": PASSWORD}
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
     )
 
     assert response.status_code == 201
@@ -14,11 +15,43 @@ async def test_register_creates_parent_and_returns_token(client):
     assert body["token_type"] == "bearer"
 
 
-async def test_register_duplicate_email_rejected(client):
-    await client.post("/api/auth/register", json={"email": EMAIL, "password": PASSWORD})
+async def test_register_records_terms_consent(client):
+    response = await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
+    )
 
+    parent = response.json()["parent"]
+    assert parent["terms_accepted_at"]
+    assert parent["terms_version"]
+
+
+async def test_register_without_accepting_terms_rejected(client):
+    response = await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": False},
+    )
+
+    assert response.status_code == 422
+
+
+async def test_register_missing_accept_terms_field_rejected(client):
     response = await client.post(
         "/api/auth/register", json={"email": EMAIL, "password": PASSWORD}
+    )
+
+    assert response.status_code == 422
+
+
+async def test_register_duplicate_email_rejected(client):
+    await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
+    )
+
+    response = await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
     )
 
     assert response.status_code == 409
@@ -26,14 +59,18 @@ async def test_register_duplicate_email_rejected(client):
 
 async def test_register_rejects_short_password(client):
     response = await client.post(
-        "/api/auth/register", json={"email": EMAIL, "password": "short"}
+        "/api/auth/register",
+        json={"email": EMAIL, "password": "short", "accept_terms": True},
     )
 
     assert response.status_code == 422
 
 
 async def test_login_with_correct_credentials(client):
-    await client.post("/api/auth/register", json={"email": EMAIL, "password": PASSWORD})
+    await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
+    )
 
     response = await client.post(
         "/api/auth/login", json={"email": EMAIL, "password": PASSWORD}
@@ -44,7 +81,10 @@ async def test_login_with_correct_credentials(client):
 
 
 async def test_login_with_wrong_password_rejected(client):
-    await client.post("/api/auth/register", json={"email": EMAIL, "password": PASSWORD})
+    await client.post(
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
+    )
 
     response = await client.post(
         "/api/auth/login", json={"email": EMAIL, "password": "wrongpassword"}
@@ -63,7 +103,8 @@ async def test_login_unknown_email_rejected(client):
 
 async def test_me_returns_current_parent(client):
     register = await client.post(
-        "/api/auth/register", json={"email": EMAIL, "password": PASSWORD}
+        "/api/auth/register",
+        json={"email": EMAIL, "password": PASSWORD, "accept_terms": True},
     )
     token = register.json()["access_token"]
 
@@ -73,6 +114,7 @@ async def test_me_returns_current_parent(client):
 
     assert response.status_code == 200
     assert response.json()["email"] == EMAIL
+    assert response.json()["terms_version"]
 
 
 async def test_me_without_token_rejected(client):
@@ -91,11 +133,13 @@ async def test_me_with_garbage_token_rejected(client):
 
 async def test_list_children_scoped_to_own_parent(client):
     register_a = await client.post(
-        "/api/auth/register", json={"email": "a@example.com", "password": PASSWORD}
+        "/api/auth/register",
+        json={"email": "a@example.com", "password": PASSWORD, "accept_terms": True},
     )
     headers_a = {"Authorization": f"Bearer {register_a.json()['access_token']}"}
     register_b = await client.post(
-        "/api/auth/register", json={"email": "b@example.com", "password": PASSWORD}
+        "/api/auth/register",
+        json={"email": "b@example.com", "password": PASSWORD, "accept_terms": True},
     )
     headers_b = {"Authorization": f"Bearer {register_b.json()['access_token']}"}
 

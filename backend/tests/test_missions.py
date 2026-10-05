@@ -28,7 +28,7 @@ async def _create_player(client) -> str:
 
     email = f"parent-{_uuid.uuid4()}@example.com"
     reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
     )
     token = reg.json()["access_token"]
     response = await client.post(
@@ -164,7 +164,7 @@ async def _create_player_with_headers(client) -> tuple[str, dict]:
 
     email = f"parent-{_uuid.uuid4()}@example.com"
     reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
     )
     token = reg.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
