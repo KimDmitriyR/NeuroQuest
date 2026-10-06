@@ -77,6 +77,25 @@
   font-size: 14px;
 }
 
+.parent-auth__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.parent-auth__consent input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.parent-auth__consent a {
+  color: #0f9d78;
+}
+
 .parent-auth__back {
   display: block;
   margin: 24px auto 0;

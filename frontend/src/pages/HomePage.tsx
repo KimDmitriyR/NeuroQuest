@@ -92,6 +92,11 @@ export function HomePage() {
       <a className="home-page__parent-link" href="/parent">
         Кабинет родителя
       </a>
+      <div className="home-page__legal-links">
+        <a href="/terms">Пользовательское соглашение</a>
+        {" · "}
+        <a href="/privacy">Политика конфиденциальности</a>
+      </div>
     </div>
   );
 }

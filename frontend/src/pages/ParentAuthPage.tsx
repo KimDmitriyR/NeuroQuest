@@ -10,18 +10,25 @@ export function ParentAuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "register" && !acceptTerms) {
+      setError(
+        "Нужно подтвердить согласие с условиями и политикой обработки персональных данных",
+      );
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
       if (mode === "login") {
         await login(email.trim(), password);
       } else {
-        await register(email.trim(), password);
+        await register(email.trim(), password, acceptTerms);
       }
       navigate("/parent");
     } catch (err) {
@@ -73,7 +80,28 @@ export function ParentAuthPage() {
           required
           minLength={8}
         />
-        <button type="submit" disabled={submitting}>
+        {mode === "register" && (
+          <label className="parent-auth__consent">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+            />
+            <span>
+              Я согласен(на) с{" "}
+              <a href="/terms" target="_blank" rel="noreferrer">
+                Пользовательским соглашением
+              </a>{" "}
+              и{" "}
+              <a href="/privacy" target="_blank" rel="noreferrer">
+                Политикой обработки персональных данных
+              </a>
+              , в том числе данных моего ребёнка
+            </span>
+          </label>
+        )}
+
+        <button type="submit" disabled={submitting || (mode === "register" && !acceptTerms)}>
           {submitting ? "..." : mode === "login" ? "Войти" : "Создать аккаунт"}
         </button>
       </form>

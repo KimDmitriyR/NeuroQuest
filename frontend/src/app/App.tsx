@@ -9,6 +9,8 @@ import { ReviewPage } from "../pages/ReviewPage";
 import { FinalePage } from "../pages/FinalePage";
 import { ParentAuthPage } from "../pages/ParentAuthPage";
 import { ParentDashboardPage } from "../pages/ParentDashboardPage";
+import { TermsPage } from "../pages/TermsPage";
+import { PrivacyPage } from "../pages/PrivacyPage";
 import { PARENT_TOKEN_KEY } from "../api/client";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ export function App() {
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/finale" element={<FinalePage />} />
           <Route path="/parent" element={<ParentAuthOrDashboard />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

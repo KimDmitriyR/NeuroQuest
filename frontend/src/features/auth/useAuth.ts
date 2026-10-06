@@ -23,12 +23,15 @@ export function useAuth() {
     return result.parent;
   }, []);
 
-  const register = useCallback(async (email: string, password: string) => {
-    const result = await authApi.register(email, password);
-    localStorage.setItem(PARENT_TOKEN_KEY, result.access_token);
-    setParent(result.parent);
-    return result.parent;
-  }, []);
+  const register = useCallback(
+    async (email: string, password: string, acceptTerms: boolean) => {
+      const result = await authApi.register(email, password, acceptTerms);
+      localStorage.setItem(PARENT_TOKEN_KEY, result.access_token);
+      setParent(result.parent);
+      return result.parent;
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem(PARENT_TOKEN_KEY);

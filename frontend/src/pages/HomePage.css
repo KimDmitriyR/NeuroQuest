@@ -76,3 +76,13 @@
   margin-top: 60px;
   color: #666;
 }
+
+.home-page__legal-links {
+  margin-top: 24px;
+  font-size: 11px;
+  color: #bbb;
+}
+
+.home-page__legal-links a {
+  color: #bbb;
+}

@@ -9,6 +9,8 @@ export interface ParentRead {
   id: string;
   email: string;
   created_at: string;
+  terms_accepted_at: string;
+  terms_version: string;
 }
 
 export interface TokenResponse {
