@@ -27,6 +27,20 @@ from app.services.mission_service import (
 router = APIRouter(prefix="/api/missions", tags=["missions"])
 
 
+def _mission_view(mission) -> MissionView:
+    return MissionView(
+        id=mission.id,
+        sector_id=mission.sector_id,
+        sector_title=mission.sector.title,
+        sector_color=mission.sector.color_token,
+        title=mission.title,
+        description=mission.description,
+        instructions=mission.instructions,
+        validation_type=mission.validation_type,
+        reward_title=mission.achievement.title,
+    )
+
+
 def get_mission_service(db: AsyncSession = Depends(get_db)) -> MissionService:
     return MissionService(MissionRepository(db), QuestSessionRepository(db))
 
@@ -43,7 +57,7 @@ async def list_missions(
     service: MissionService = Depends(get_mission_service),
 ) -> list[MissionView]:
     missions = await service.mission_repo.list_missions()
-    return [MissionView.model_validate(m) for m in missions]
+    return [_mission_view(m) for m in missions]
 
 
 @router.get("/attempts/pending", response_model=list[PendingAttemptView])
@@ -72,7 +86,7 @@ async def get_mission(
     mission = await service.mission_repo.get_mission(mission_id)
     if mission is None:
         raise HTTPException(status_code=404, detail="Mission not found")
-    return MissionView.model_validate(mission)
+    return _mission_view(mission)
 
 
 @router.post("/{mission_id}/attempts", response_model=AttemptView, status_code=201)

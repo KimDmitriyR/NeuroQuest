@@ -25,10 +25,13 @@ class MissionView(BaseModel):
 
     id: uuid.UUID
     sector_id: uuid.UUID
+    sector_title: str
+    sector_color: str
     title: str
     description: str
     instructions: str
     validation_type: ValidationType
+    reward_title: str
 
 
 class AttemptView(BaseModel):

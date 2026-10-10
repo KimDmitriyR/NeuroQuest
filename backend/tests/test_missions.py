@@ -326,3 +326,25 @@ async def test_cipher_mission_cannot_submit_after_completed(client, db_session):
     )
 
     assert response.status_code == 400
+
+
+async def test_mission_view_includes_sector_and_reward(client, db_session):
+    mission_id = await _mission_id(db_session)
+
+    response = await client.get(f"/api/missions/{mission_id}")
+
+    body = response.json()
+    assert body["sector_title"] == "Финстартап 2.0"
+    assert body["sector_color"].startswith("#")
+    assert body["reward_title"] == "Финансовый планировщик"
+
+
+async def test_list_missions_each_has_sector_and_reward(client, db_session):
+    await _mission_id(db_session)
+
+    response = await client.get("/api/missions")
+
+    for mission in response.json():
+        assert mission["sector_title"]
+        assert mission["sector_color"].startswith("#")
+        assert mission["reward_title"]

@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -49,3 +49,8 @@ class EnvelopeMission(Base):
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    # joined-loaded so the API can show sector name/color and the reward
+    # without extra queries (and without lazy IO inside async code)
+    sector: Mapped["Sector"] = relationship("Sector", lazy="joined")
+    achievement: Mapped["Achievement"] = relationship("Achievement", lazy="joined")
