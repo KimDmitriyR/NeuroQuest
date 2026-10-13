@@ -1,13 +1,190 @@
+/* ───────────── NeuroQuest design system ─────────────
+   Marketplace-style: violet/magenta brand gradient, light grey page,
+   white rounded cards, bold "price" lines, solid purple action buttons. */
+
 :root {
+  --brand: #cb11ab;
+  --brand-2: #8a1fd0;
+  --brand-dark: #481173;
+  --brand-hover: #a80d8d;
+  --grad: linear-gradient(95deg, #cb11ab 0%, #8a1fd0 52%, #481173 100%);
+
+  --bg: #f4f4f8;
+  --surface: #ffffff;
+  --text: #1d1b24;
+  --muted: #7c7a88;
+  --line: #ebe9f1;
+  --tint: #f7ebfb;
+
+  --good: #14a56c;
+  --good-bg: #e4f7ee;
+  --warn-bg: #fff4d6;
+  --warn-text: #7a5a05;
+  --bad: #e5383b;
+  --bad-bg: #fde8e8;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --shadow: 0 2px 10px rgba(72, 17, 115, 0.08);
+  --shadow-lg: 0 12px 32px rgba(72, 17, 115, 0.18);
+
+  --header-h: 64px;
+  --nav-h: 62px;
+  --gutter: clamp(14px, 3vw, 40px);
+  --page-max: 1600px;
+
   color-scheme: light;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: #fafafa;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+
+h1, h2, h3, p { margin-top: 0; }
+a { color: var(--brand-2); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 3px solid rgba(203, 17, 171, 0.45);
+  outline-offset: 2px;
+}
+
+/* ───────── layout helpers ───────── */
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 24px var(--gutter) 40px;
+}
+.page--narrow { max-width: 920px; }
+.page--form { max-width: 460px; }
+
+.page-title {
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.2;
+  margin: 0 0 6px;
+  font-weight: 800;
+}
+.page-subtitle {
+  color: var(--muted);
+  margin: 0 0 22px;
+}
+.section-title {
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 800;
+  margin: 30px 0 14px;
+}
+
+/* ───────── components ───────── */
+.card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.05s, box-shadow 0.15s;
+}
+.btn:hover:not(:disabled) { background: var(--brand-hover); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn--block { width: 100%; }
+.btn--ghost {
+  background: var(--tint);
+  color: var(--brand-dark);
+}
+.btn--ghost:hover:not(:disabled) { background: #efd6f7; }
+.btn--danger { background: var(--bad-bg); color: var(--bad); }
+.btn--danger:hover:not(:disabled) { background: #f9d3d3; }
+.btn--sm { padding: 8px 14px; font-size: 13px; }
+
+.chip {
+  border: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  transition: background 0.15s, color 0.15s;
+}
+.chip:hover { background: var(--tint); }
+.chip--active { background: var(--brand); color: #fff; }
+.chip--active:hover { background: var(--brand-hover); }
+
+.state-box {
+  text-align: center;
+  color: var(--muted);
+  padding: 60px 16px;
+}
+.state-box .btn { margin-top: 14px; }
+
+.input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 2px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.input:focus { outline: none; border-color: var(--brand); }
+
+@media (max-width: 640px) {
+  :root { --header-h: 56px; }
+  body { font-size: 15px; }
+}
+
+/* shared bits used by several pages */
+.section-title--first { margin-top: 4px; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 6px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  color: var(--brand-dark);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.back-link:hover { background: var(--tint); }
+.btn--white { background: #fff; color: var(--brand-dark); }
+.btn--white:hover:not(:disabled) { background: #f6e6fb; }

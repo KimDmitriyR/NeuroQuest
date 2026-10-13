@@ -1,0 +1,14 @@
+.settings-card { padding: 22px; margin-bottom: 16px; }
+.settings-card h2 { font-size: 18px; font-weight: 800; margin-bottom: 14px; }
+.settings-list { margin: 0 0 16px; display: grid; gap: 12px; }
+.settings-list div { display: grid; gap: 2px; }
+.settings-list dt { color: var(--muted); font-size: 13px; }
+.settings-list dd { margin: 0; font-weight: 600; word-break: break-word; }
+.settings-note { color: var(--muted); margin-bottom: 14px; }
+.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.settings-signout { margin-top: 8px; }
+
+@media (max-width: 640px) {
+  .settings-card { padding: 16px; }
+  .settings-actions .btn { flex: 1 1 100%; }
+}
