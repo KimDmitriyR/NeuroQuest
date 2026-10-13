@@ -1,38 +1,30 @@
-.photo-capture {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 0;
-}
+.photo-capture { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
 
 .photo-capture__button {
-  padding: 14px 24px;
-  border: 2px dashed #b14eff;
-  border-radius: 12px;
-  background: #f6ecff;
-  color: #5a1e94;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
+  width: 100%;
+  padding: 30px 16px;
+  border: 2px dashed var(--brand);
+  border-radius: var(--r-md);
+  background: var(--tint);
+  color: var(--brand-dark);
+  font-weight: 800;
+  font-size: 17px;
+  transition: background 0.15s;
 }
+.photo-capture__button:hover { background: #efd6f7; }
 
 .photo-capture__preview {
   max-width: 100%;
-  max-height: 300px;
-  border-radius: 12px;
+  max-height: 380px;
+  border-radius: var(--r-md);
   object-fit: contain;
+  background: var(--bg);
 }
 
 .photo-capture__retake {
-  border: none;
+  border: 0;
   background: none;
-  color: #b14eff;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 14px;
+  color: var(--brand);
+  font-weight: 700;
 }
-
-.photo-capture__input {
-  display: none;
-}
+.photo-capture__input { display: none; }

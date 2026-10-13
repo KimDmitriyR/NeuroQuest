@@ -1,41 +1,30 @@
-.master-code-board {
-  padding: 16px;
-  text-align: center;
-}
-
-.master-code-board__title {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 8px;
-}
+.master-code-board { padding: clamp(16px, 3vw, 28px); text-align: center; }
 
 .master-code-board__slots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(4px, 1vw, 10px);
+  max-width: 900px;
+  margin: 0 auto;
 }
-
 .master-code-board__slot {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-weight: 700;
-  color: #bbb;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1.15;
+  border: 2px dashed #d8d3e2;
+  border-radius: 12px;
+  color: #c3bdd0;
+  font-weight: 900;
+  font-size: clamp(14px, 2.6vw, 28px);
 }
-
 .master-code-board__slot--unlocked {
-  border-color: #2de1c2;
-  color: #072019;
-  background: #e9fffa;
+  border: 0;
+  background: var(--grad);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(138, 31, 208, 0.3);
 }
+.master-code-board__caption { margin-top: 16px; color: var(--muted); font-size: 14px; }
 
-.master-code-board__complete {
-  margin-top: 10px;
-  font-weight: 700;
-  color: #0f9d78;
+@media (max-width: 640px) {
+  .master-code-board__slots { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }

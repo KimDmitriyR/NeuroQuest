@@ -1,46 +1,33 @@
-.profile-page {
-  max-width: 480px;
-  margin: 0 auto;
-  font-family: system-ui, sans-serif;
-}
-
-.profile-page__header {
+.profile-hero {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
+  gap: 20px;
+  padding: clamp(18px, 3vw, 32px);
+  border-radius: var(--r-lg);
+  color: #fff;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.2), transparent 40%),
+    linear-gradient(110deg, #b50f9a 0%, #7a1fc4 55%, #3d0f66 100%);
 }
-
-.profile-page__back {
-  border: none;
-  background: none;
-  color: #0f9d78;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 14px;
+.profile-hero__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--brand);
+  font-size: 34px;
+  font-weight: 900;
 }
+.profile-hero__info { flex: 1; min-width: 0; }
+.profile-hero__name { font-size: clamp(22px, 3vw, 34px); font-weight: 900; margin: 0 0 8px; overflow-wrap: anywhere; }
+.profile-hero__stats { display: flex; flex-wrap: wrap; gap: 8px 22px; opacity: 0.95; }
+.profile-hero__stats b { font-size: 20px; }
 
-.profile-page__section-title {
-  padding: 0 16px;
-  font-size: 16px;
-}
-
-.profile-page__finale-button {
-  display: block;
-  margin: 0 16px 16px;
-  padding: 12px;
-  width: calc(100% - 32px);
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #2de1c2, #b14eff);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.profile-page__status {
-  text-align: center;
-  margin-top: 60px;
-  color: #666;
+@media (max-width: 640px) {
+  .profile-hero { flex-wrap: wrap; gap: 14px; }
+  .profile-hero__avatar { width: 60px; height: 60px; font-size: 26px; }
+  .profile-hero > .btn { width: 100%; }
 }

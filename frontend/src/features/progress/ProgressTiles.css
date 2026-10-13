@@ -1,0 +1,26 @@
+.progress-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.progress-tile {
+  display: block;
+  padding: 20px;
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.progress-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.progress-tile__title { color: var(--muted); font-weight: 600; font-size: 14px; }
+.progress-tile__value { font-size: 38px; font-weight: 900; line-height: 1.15; margin: 4px 0 8px; color: var(--brand-dark); }
+.progress-tile__value span { font-size: 18px; color: var(--muted); font-weight: 700; }
+.progress-tile__bar { height: 8px; border-radius: 999px; background: var(--tint); overflow: hidden; margin-bottom: 10px; }
+.progress-tile__fill { height: 100%; border-radius: 999px; background: var(--grad); transition: width 0.4s; }
+.progress-tile__hint { color: var(--muted); font-size: 14px; }
+
+@media (max-width: 640px) {
+  .progress-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .progress-tile { padding: 14px; }
+  .progress-tile__value { font-size: 30px; }
+  .progress-tile__hint { font-size: 12.5px; }
+}

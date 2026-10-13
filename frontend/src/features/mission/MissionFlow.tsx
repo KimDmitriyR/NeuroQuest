@@ -47,79 +47,93 @@ export function MissionFlow({ missionId, playerId }: MissionFlowProps) {
     submitAttempt.mutate({ photoUrl: dataUrl }, { onSuccess: setAttempt });
   };
 
+  const typeLabel = mission.validation_type === "photo" ? "Фото-задание" : "Шифр";
+
   return (
-    <div className="mission-flow">
-      <h1>{mission.title}</h1>
-      <p className="mission-flow__description">{mission.description}</p>
+    <div
+      className="mission-flow card"
+      style={{ "--accent": mission.sector_color } as React.CSSProperties}
+    >
+      <div className="mission-flow__head">
+        <span className="mission-flow__sector">{mission.sector_title}</span>
+        <h1>{mission.title}</h1>
+        <p className="mission-flow__description">{mission.description}</p>
+        <div className="mission-flow__tags">
+          <span className="mission-flow__tag">🏆 {mission.reward_title}</span>
+          <span className="mission-flow__tag">{typeLabel}</span>
+        </div>
+      </div>
 
-      {!attempt && (
-        <>
-          <div className="mission-flow__instructions">{mission.instructions}</div>
-          <button
-            className="mission-flow__start"
-            onClick={handleStart}
-            disabled={startAttempt.isPending}
-          >
-            {startAttempt.isPending ? "..." : "Начать миссию"}
-          </button>
-        </>
-      )}
+      <div className="mission-flow__content">
+        {!attempt && (
+          <>
+            <div className="mission-flow__instructions">{mission.instructions}</div>
+            <button
+              className="btn btn--block"
+              onClick={handleStart}
+              disabled={startAttempt.isPending}
+            >
+              {startAttempt.isPending ? "..." : "Начать миссию"}
+            </button>
+          </>
+        )}
 
-      {attempt && attempt.status === "in_progress" && mission.validation_type === "photo" && (
-        <>
-          <div className="mission-flow__instructions">{mission.instructions}</div>
-          <PhotoCapture onCapture={handleSubmitPhoto} />
-        </>
-      )}
+        {attempt && attempt.status === "in_progress" && mission.validation_type === "photo" && (
+          <>
+            <div className="mission-flow__instructions">{mission.instructions}</div>
+            <PhotoCapture onCapture={handleSubmitPhoto} />
+          </>
+        )}
 
-      {attempt && attempt.status === "in_progress" && mission.validation_type === "text" && (
-        <div className="mission-flow__cipher">
-          <div className="mission-flow__step-label">
-            Шаг {attempt.current_step + 1}
-            {totalSteps ? ` из ${totalSteps}` : ""}
-          </div>
-          <div className="mission-flow__instructions">{mission.instructions}</div>
-          <input
-            className="mission-flow__cipher-input"
-            value={textInput}
-            onChange={(e) => {
-              setTextInput(e.target.value);
-              setFeedback(null);
-            }}
-            placeholder="Введи расшифрованную фразу"
-            onKeyDown={(e) => e.key === "Enter" && handleSubmitText()}
-          />
-          <button
-            className="mission-flow__start"
-            onClick={handleSubmitText}
-            disabled={submitAttempt.isPending || !textInput.trim()}
-          >
-            Проверить
-          </button>
-          {feedback === "wrong" && (
-            <div className="mission-flow__feedback mission-flow__feedback--wrong">
-              Неверно, попробуй ещё раз
+        {attempt && attempt.status === "in_progress" && mission.validation_type === "text" && (
+          <div className="mission-flow__cipher">
+            <div className="mission-flow__step-label">
+              Шаг {attempt.current_step + 1}
+              {totalSteps ? ` из ${totalSteps}` : ""}
             </div>
-          )}
-        </div>
-      )}
+            <div className="mission-flow__instructions">{mission.instructions}</div>
+            <input
+              className="input mission-flow__cipher-input"
+              value={textInput}
+              onChange={(e) => {
+                setTextInput(e.target.value);
+                setFeedback(null);
+              }}
+              placeholder="Введи расшифрованную фразу"
+              onKeyDown={(e) => e.key === "Enter" && handleSubmitText()}
+            />
+            <button
+              className="btn btn--block"
+              onClick={handleSubmitText}
+              disabled={submitAttempt.isPending || !textInput.trim()}
+            >
+              Проверить
+            </button>
+            {feedback === "wrong" && (
+              <div className="mission-flow__feedback mission-flow__feedback--wrong">
+                Неверно, попробуй ещё раз
+              </div>
+            )}
+          </div>
+        )}
 
-      {attempt && attempt.status === "submitted" && (
-        <div className="mission-flow__pending">
-          📨 Отправлено на проверку. Как только куратор посмотрит фото, миссия
-          будет засчитана.
-        </div>
-      )}
+        {attempt && attempt.status === "submitted" && (
+          <div className="mission-flow__pending">
+            📨 Отправлено на проверку. Как только куратор посмотрит фото, миссия
+            будет засчитана.
+          </div>
+        )}
 
-      {attempt && attempt.status === "approved" && (
-        <RewardToast icon="🏆" title="Миссия выполнена!" subtitle="Достижение получено" />
-      )}
+        {attempt && attempt.status === "approved" && (
+          <RewardToast icon="🏆" title="Миссия выполнена!" subtitle="Достижение получено" />
+        )}
 
-      {attempt && attempt.status === "rejected" && (
-        <div className="mission-flow__feedback mission-flow__feedback--wrong">
-          Миссия не засчитана. Попробуй ещё раз позже.
-        </div>
-      )}
+        {attempt && attempt.status === "rejected" && (
+          <div className="mission-flow__feedback mission-flow__feedback--wrong">
+            Миссия не засчитана. Попробуй ещё раз позже.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

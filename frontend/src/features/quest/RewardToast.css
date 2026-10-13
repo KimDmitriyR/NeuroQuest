@@ -1,24 +1,14 @@
 .reward-toast {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin: 8px 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #fff6d8, #ffe9a8);
-  border: 1px solid #f0d27a;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  background: linear-gradient(90deg, #fff4cf, #ffe39a);
+  border: 1px solid #f2cf6b;
+  max-width: min(100%, 520px);
 }
-
-.reward-toast__icon {
-  font-size: 22px;
-}
-
-.reward-toast__title {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.reward-toast__subtitle {
-  font-size: 13px;
-  color: #6b5a1e;
-}
+.reward-toast__icon { font-size: 28px; }
+.reward-toast__title { font-weight: 800; }
+.reward-toast__subtitle { font-size: 13px; color: var(--warn-text); }

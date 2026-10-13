@@ -80,10 +80,13 @@ export type MissionAttemptStatus =
 export interface MissionView {
   id: string;
   sector_id: string;
+  sector_title: string;
+  sector_color: string;
   title: string;
   description: string;
   instructions: string;
   validation_type: MissionValidationType;
+  reward_title: string;
 }
 
 export interface AttemptView {

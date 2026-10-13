@@ -29,17 +29,22 @@ export function ChildCard({ child }: { child: Player }) {
   };
 
   return (
-    <div className="child-card">
-      <div className="child-card__name">{child.name}</div>
-      <div className="child-card__stats">
-        <span>
-          🔤 {masterCode ? `${masterCode.unlocked_count}/${masterCode.total_positions}` : "…"}
-        </span>
-        <span>🏆 {achievements ? achievements.length : "…"}</span>
+    <div className="child-card card">
+      <div className="child-card__top">
+        <span className="child-card__avatar">{child.name.charAt(0).toUpperCase()}</span>
+        <div>
+          <div className="child-card__name">{child.name}</div>
+          <div className="child-card__stats">
+            <span>🔤 {masterCode ? `${masterCode.unlocked_count}/${masterCode.total_positions}` : "…"}</span>
+            <span>🏆 {achievements ? achievements.length : "…"}</span>
+          </div>
+        </div>
       </div>
       <div className="child-card__actions">
-        <button onClick={playHere}>Играть на этом устройстве</button>
-        <button onClick={copyLink}>{copied ? "Скопировано!" : "Ссылка для ребёнка"}</button>
+        <button className="btn btn--sm" onClick={playHere}>Играть на этом устройстве</button>
+        <button className="btn btn--sm btn--ghost" onClick={copyLink}>
+          {copied ? "Скопировано!" : "Ссылка для ребёнка"}
+        </button>
       </div>
     </div>
   );

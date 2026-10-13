@@ -1,23 +1,25 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import { useAddChild, useChildren } from "../features/parent/useChildren";
 import { ChildCard } from "../features/parent/ChildCard";
+import { Icon } from "../features/layout/Icon";
 import "./ParentDashboardPage.css";
 
 export function ParentDashboardPage() {
   const { parent, loading } = useAuth();
-  const navigate = useNavigate();
   const { data: children, isLoading } = useChildren();
   const addChild = useAddChild();
   const [newName, setNewName] = useState("");
 
-  if (loading) return <div className="parent-dashboard__status">Загрузка...</div>;
+  if (loading) return <div className="page"><div className="state-box">Загрузка...</div></div>;
   if (!parent) {
     return (
-      <div className="parent-dashboard__status">
-        Сначала войди в кабинет.
-        <button onClick={() => navigate("/parent")}>Войти</button>
+      <div className="page">
+        <div className="state-box card">
+          <p>Сначала войди в кабинет.</p>
+          <Link className="btn" to="/parent">Войти</Link>
+        </div>
       </div>
     );
   }
@@ -29,34 +31,37 @@ export function ParentDashboardPage() {
   };
 
   return (
-    <div className="parent-dashboard">
-      <header className="parent-dashboard__header">
+    <div className="page">
+      <div className="dash-head">
         <div>
-          <h1>Кабинет родителя</h1>
-          <div className="parent-dashboard__email">{parent.email}</div>
+          <h1 className="page-title">Кабинет родителя</h1>
+          <p className="page-subtitle">{parent.email}</p>
         </div>
-        <button className="parent-dashboard__review-link" onClick={() => navigate("/review")}>
-          📨 Проверка миссий
-        </button>
-      </header>
+        <Link to="/review" className="btn btn--ghost">
+          <Icon name="mail" size={20} /> Проверка миссий
+        </Link>
+      </div>
 
-      <div className="parent-dashboard__children">
-        {isLoading && <div className="parent-dashboard__status">Загрузка...</div>}
+      <h2 className="section-title section-title--first">Мои дети</h2>
+      <div className="dash-grid">
+        {isLoading && <div className="state-box">Загрузка...</div>}
         {children?.map((child) => (
           <ChildCard key={child.id} child={child} />
         ))}
-      </div>
 
-      <form onSubmit={handleAddChild} className="parent-dashboard__add-form">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Имя ребёнка"
-        />
-        <button type="submit" disabled={addChild.isPending}>
-          + Добавить ребёнка
-        </button>
-      </form>
+        <form onSubmit={handleAddChild} className="add-child card">
+          <div className="add-child__title">Добавить ребёнка</div>
+          <input
+            className="input"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Имя ребёнка"
+          />
+          <button className="btn btn--block" type="submit" disabled={addChild.isPending || !newName.trim()}>
+            + Добавить
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

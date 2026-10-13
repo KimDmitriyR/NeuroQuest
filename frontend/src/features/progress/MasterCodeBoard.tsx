@@ -11,23 +11,22 @@ export function MasterCodeBoard({ playerId }: { playerId: string }) {
   if (!data) return null;
 
   return (
-    <div className="master-code-board">
-      <div className="master-code-board__title">
-        Мастер-код: {data.unlocked_count}/{data.total_positions}
-      </div>
+    <div className="master-code-board card">
       <div className="master-code-board__slots">
         {data.slots.map((slot) => (
           <div
             key={slot.position}
-            className={`master-code-board__slot ${slot.unlocked ? "master-code-board__slot--unlocked" : ""}`}
+            className={`master-code-board__slot${slot.unlocked ? " master-code-board__slot--unlocked" : ""}`}
           >
             {slot.letter ?? "?"}
           </div>
         ))}
       </div>
-      {data.is_complete && (
-        <div className="master-code-board__complete">🎉 Мастер-код собран!</div>
-      )}
+      <div className="master-code-board__caption">
+        {data.is_complete
+          ? "🎉 Мастер-код собран!"
+          : `Собрано ${data.unlocked_count} из ${data.total_positions} букв — проходи карточки, чтобы открыть остальные`}
+      </div>
     </div>
   );
 }

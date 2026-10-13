@@ -1,38 +1,31 @@
 .choice-button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   padding: 12px 16px;
-  margin: 6px 0;
-  border: 2px solid #2de1c2;
-  border-radius: 12px;
-  background: white;
-  cursor: pointer;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  background: #fff;
+  color: var(--text);
   text-align: left;
   font-size: 15px;
-  transition: background 0.15s ease;
+  transition: border-color 0.15s, background 0.15s, transform 0.05s;
 }
-
-.choice-button:hover:not(:disabled) {
-  background: #e9fffa;
-}
-
-.choice-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.choice-button:hover:not(:disabled) { border-color: var(--brand); background: var(--tint); }
+.choice-button:active:not(:disabled) { transform: translateY(1px); }
+.choice-button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .choice-button__label {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #2de1c2;
-  color: #072019;
-  font-weight: 700;
-  font-size: 13px;
+  background: var(--grad);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
 }
+.choice-button__text { line-height: 1.35; }

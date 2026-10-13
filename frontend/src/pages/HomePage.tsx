@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { usePlayer } from "../features/player/usePlayer";
-import { questsApi } from "../api/quests";
-import { ApiError } from "../api/client";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { QuestCodeForm } from "../features/layout/QuestCodeForm";
+import { Icon, type IconName } from "../features/layout/Icon";
+import { useStartQuest } from "../features/quest/useStartQuest";
+import { ProgressTiles } from "../features/progress/ProgressTiles";
+import { useSession } from "../features/session/useSession";
 import "./HomePage.css";
 
+// a scanned QR code opens the site as /?quest=<token>
 function consumeQuestParamFromUrl(): string | null {
   const url = new URL(window.location.href);
   const token = url.searchParams.get("quest");
@@ -14,89 +17,96 @@ function consumeQuestParamFromUrl(): string | null {
   return token;
 }
 
+const SECTIONS: { to: string; icon: IconName; title: string; text: string }[] = [
+  { to: "/missions", icon: "mail", title: "Конверты с миссиями", text: "Задания из реального мира: фото, шифры, алгоритмы" },
+  { to: "/profile", icon: "trophy", title: "Мои достижения", text: "Награды и собранный мастер-код" },
+  { to: "/parent", icon: "users", title: "Кабинет родителя", text: "Профили детей и проверка миссий" },
+  { to: "/settings", icon: "sliders", title: "Настройки", text: "Аккаунт, профиль и документы" },
+];
+
+const STEPS = [
+  { n: 1, title: "Родитель создаёт профиль", text: "Регистрация в кабинете родителя и профиль для ребёнка." },
+  { n: 2, title: "Сканируй карточку", text: "QR-код на карточке запускает квест — или введи код вручную." },
+  { n: 3, title: "Проходи и собирай", text: "Выбирай решения, получай достижения и буквы мастер-кода." },
+];
+
 export function HomePage() {
-  const { player, loading } = usePlayer();
-  const navigate = useNavigate();
+  const { player, playerLoading } = useSession();
+  const { start } = useStartQuest();
 
-  const [qrToken, setQrToken] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
-
-  const startQuest = async (token: string) => {
-    if (!player || !token.trim()) return;
-    setError(null);
-    setStarting(true);
-    try {
-      const session = await questsApi.start(player.id, token.trim());
-      navigate(`/quest/${session.id}`);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Что-то пошло не так");
-    } finally {
-      setStarting(false);
-    }
-  };
-
-  // a scanned QR code lands here as /?quest=<token> - auto-start immediately
-  // once we know who's playing, instead of making them retype the code
+  // QR landing: start the scanned quest as soon as we know who is playing
   useEffect(() => {
-    if (loading) return;
+    if (playerLoading || !player) return;
     const token = consumeQuestParamFromUrl();
-    if (token && player) startQuest(token);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, player]);
-
-  if (loading) return <div className="home-page__status">Загрузка...</div>;
-
-  const handleStartQuest = (e: React.FormEvent) => {
-    e.preventDefault();
-    startQuest(qrToken);
-  };
-
-  if (!player) {
-    return (
-      <div className="home-page">
-        <h1>NeuroQuest</h1>
-        <p className="home-page__hint">
-          Чтобы начать играть, попроси родителя открыть личный кабинет и
-          создать тебе профиль.
-        </p>
-        <a className="home-page__parent-link" href="/parent">
-          Кабинет родителя →
-        </a>
-      </div>
-    );
-  }
+    if (token) start(token);
+  }, [playerLoading, player, start]);
 
   return (
-    <div className="home-page">
-      <h1>Привет, {player.name}!</h1>
-      <p className="home-page__hint">Отсканируй QR-код на карточке или введи его код:</p>
-      <form onSubmit={handleStartQuest} className="home-page__form">
-        <input
-          value={qrToken}
-          onChange={(e) => setQrToken(e.target.value)}
-          placeholder="например, finstartup-2-0-01"
-          autoFocus
-        />
-        <button type="submit" disabled={starting}>
-          {starting ? "Загрузка..." : "Начать квест"}
-        </button>
-      </form>
-      {error && <div className="home-page__error">{error}</div>}
-      <a className="home-page__profile-link" href="/missions">
-        Конверты с миссиями →
-      </a>
-      <a className="home-page__profile-link" href="/profile">
-        Мой профиль →
-      </a>
-      <a className="home-page__parent-link" href="/parent">
-        Кабинет родителя
-      </a>
-      <div className="home-page__legal-links">
-        <a href="/terms">Пользовательское соглашение</a>
-        {" · "}
-        <a href="/privacy">Политика конфиденциальности</a>
+    <>
+      <section className="hero">
+        <div className="hero__inner">
+          <div className="hero__text">
+            <span className="hero__badge">Образовательные квесты</span>
+            <h1 className="hero__title">
+              {player ? `Привет, ${player.name}! 👋` : "Квесты, которые учат жить в цифровом мире"}
+            </h1>
+            <p className="hero__lead">
+              {player
+                ? "Отсканируй QR-код на карточке или введи её код — и квест начнётся."
+                : "Финансы, кибербезопасность и искусственный интеллект — в формате игры с карточками и заданиями."}
+            </p>
+            {player ? (
+              <div className="hero__form"><QuestCodeForm variant="hero" /></div>
+            ) : (
+              <div className="hero__actions">
+                <Link className="btn btn--white" to="/parent">Кабинет родителя</Link>
+                <span className="hero__note">Профиль ребёнка создаёт родитель</span>
+              </div>
+            )}
+          </div>
+
+          <div className="hero__art" aria-hidden="true">
+            <div className="hero-card hero-card--a"><span>💸</span>Финансы</div>
+            <div className="hero-card hero-card--b"><span>🛡️</span>Кибербезопасность</div>
+            <div className="hero-card hero-card--c"><span>🤖</span>ИИ</div>
+          </div>
+        </div>
+      </section>
+
+      <div className="page">
+        {player && (
+          <>
+            <h2 className="section-title section-title--first">Твой прогресс</h2>
+            <ProgressTiles playerId={player.id} />
+          </>
+        )}
+
+        <h2 className={`section-title${player ? "" : " section-title--first"}`}>Разделы</h2>
+        <div className="quick-grid">
+          {SECTIONS.map((s) => (
+            <Link key={s.to} to={s.to} className="quick-tile card">
+              <span className="quick-tile__icon"><Icon name={s.icon} size={26} /></span>
+              <span className="quick-tile__title">{s.title}</span>
+              <span className="quick-tile__text">{s.text}</span>
+            </Link>
+          ))}
+        </div>
+
+        {!player && (
+          <>
+            <h2 className="section-title">Как это работает</h2>
+            <div className="steps">
+              {STEPS.map((s) => (
+                <div key={s.n} className="step card">
+                  <span className="step__n">{s.n}</span>
+                  <div className="step__title">{s.title}</div>
+                  <div className="step__text">{s.text}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
 }

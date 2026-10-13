@@ -1,23 +1,33 @@
-.achievement-list {
+.achievement-grid {
   list-style: none;
-  padding: 0 16px;
   margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
 }
-
-.achievement-list__item {
+.achievement-card {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px;
 }
-
-.achievement-list__icon {
-  font-size: 20px;
+.achievement-card--badge { background: linear-gradient(160deg, #fff, #fff3cf); }
+.achievement-card__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--tint);
+  font-size: 24px;
 }
+.achievement-card--badge .achievement-card__icon { background: #ffe39a; }
+.achievement-card__title { font-weight: 800; line-height: 1.25; }
+.achievement-card__date { color: var(--muted); font-size: 13px; }
 
-.achievement-list__empty {
-  padding: 16px;
-  text-align: center;
-  color: #888;
+@media (max-width: 640px) {
+  .achievement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .achievement-card { padding: 14px; }
 }
