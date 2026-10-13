@@ -12,12 +12,14 @@ import { ParentDashboardPage } from "../pages/ParentDashboardPage";
 import { TermsPage } from "../pages/TermsPage";
 import { PrivacyPage } from "../pages/PrivacyPage";
 import { PARENT_TOKEN_KEY } from "../api/client";
+import { SessionProvider } from "../features/session/SessionProvider";
 
 const queryClient = new QueryClient();
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <SessionProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -32,6 +34,7 @@ export function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
         </Routes>
       </BrowserRouter>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }
