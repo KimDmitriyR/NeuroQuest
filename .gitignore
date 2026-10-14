@@ -24,3 +24,6 @@ backend/print_assets/
 # OS
 .DS_Store
 Thumbs.db
+
+# screenshots from tools/browser-checks
+tools/browser-checks/out/

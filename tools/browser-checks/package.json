@@ -1,0 +1,15 @@
+{
+  "name": "neuroquest-browser-checks",
+  "private": true,
+  "type": "module",
+  "description": "Real-browser smoke test, overflow check and screenshots for NeuroQuest",
+  "scripts": {
+    "smoke": "node smoke.mjs",
+    "overflow": "node overflow.mjs",
+    "screenshots": "node screenshots.mjs"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "153.0.0",
+    "puppeteer-core": "25.13.0"
+  }
+}
