@@ -9,6 +9,13 @@
 - PostgreSQL
 - Docker
 
+## Документация
+
+- [`WINDOWS_SETUP.md`](WINDOWS_SETUP.md) — полный запуск на Windows от нуля, с разбором типичных ошибок
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — архитектура, API, состояние проекта, ограничения, планы
+- [`CONTENT_SOURCES.md`](CONTENT_SOURCES.md) — откуда взят игровой контент и какие решения по нему приняты
+- [`tools/browser-checks`](tools/browser-checks/README.md) — проверки интерфейса в реальном браузере (сценарий, мобильная вёрстка, скриншоты)
+
 ## Запуск локально (Windows, без Docker)
 
 Если Docker Desktop/WSL недоступен или барахлит, Postgres можно поставить
