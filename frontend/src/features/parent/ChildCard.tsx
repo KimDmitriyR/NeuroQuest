@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { playersApi } from "../../api/players";
 import { PLAYER_STORAGE_KEY } from "../player/usePlayer";
+import { copyText } from "./copyText";
 import type { Player } from "../../types/api";
 import "./ChildCard.css";
 
@@ -23,9 +24,13 @@ export function ChildCard({ child }: { child: Player }) {
 
   const copyLink = async () => {
     const url = `${window.location.origin}/?child=${child.id}`;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (await copyText(url)) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      // the browser blocked every way of copying: let the parent copy it by hand
+      window.prompt("Скопируй ссылку и отправь её ребёнку:", url);
+    }
   };
 
   return (

@@ -14,6 +14,7 @@ page.on("console", (m) => {
   if (m.type() === "error" && !m.text().includes("404")) problems.push("console.error: " + m.text());
 });
 
+page.on("dialog", (d) => d.dismiss()); // the copy-link fallback may open a prompt()
 const text = () => page.evaluate(() => document.body.innerText);
 let step = 0;
 let failed = 0;
@@ -49,6 +50,11 @@ await page.type(".add-child .input", "Тест-Ребёнок");
 await page.click('.add-child button[type="submit"]');
 await waitText("Тест-Ребёнок");
 await check("child appears after adding", (await text()).includes("Тест-Ребёнок"));
+// plain-http pages (e.g. a phone on the local network) have no navigator.clipboard
+await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true }));
+await page.click(".child-card__actions .btn--ghost");
+await waitText("Скопировано!", 4000);
+await check("'link for the child' copies even without the Clipboard API", (await text()).includes("Скопировано!"));
 await Promise.all([
   page.waitForNavigation({ waitUntil: "networkidle0" }),
   page.click(".child-card__actions .btn:not(.btn--ghost)"),
