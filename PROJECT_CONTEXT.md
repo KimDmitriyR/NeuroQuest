@@ -17,7 +17,7 @@
 **Состояние:** всё из исходных документов реализовано — 12 из 12 карточек,
 3 из 3 миссии, авторизация родителей, юридические страницы (черновик),
 адаптивный интерфейс в стиле маркетплейса. Backend: 51 тест. Frontend:
-сборка, линтер и 18-шаговый сценарий в реальном браузере проходят.
+сборка, линтер и 19-шаговый сценарий в реальном браузере проходят.
 
 ## Как продолжить в новом чате
 
@@ -37,7 +37,7 @@ Python 3.14 (`C:\Python314`) с venv в `backend\venv`, PostgreSQL 17 +
 pgAdmin (нативная установка, **без Docker**), Node.js. Проект лежит в
 `Desktop\NQ\NeuroQuest`. Docker Desktop у владельца падает с ошибкой WSL
 `ERROR_NO_SYSTEM_RESOURCES` — Docker в рабочем сценарии не используется.
-Пошагово: `WINDOWS_SETUP.md`. Проблемы, которые уже были решены и
+Пошагово: `WINDOWS_SETUP.md` (там же — как открыть сайт на телефоне по Wi-Fi: `CORS_ALLOWED_ORIGINS` и `VITE_API_URL`). Проблемы, которые уже были решены и
 записаны там: `alembic` не в PATH (нужен venv), `WinError 64` у asyncpg на
 Windows (обход в `app/core/windows_compat.py`), роль/база создаются вручную
 в pgAdmin, порт Vite должен быть именно 5173 (CORS).
@@ -141,7 +141,7 @@ Windows (обход в `app/core/windows_compat.py`), роль/база созд
   `neuroquest_test`. Среди них `test_full_playthrough.py` (все 12 карточек →
   фраза «ТВОЙНОВЫЙКОД»).
 - Frontend: `npm run build` (tsc + vite) и `npm run lint` (oxlint).
-- **Реальный браузер:** `tools/browser-checks` — `smoke.mjs` (18 шагов
+- **Реальный браузер:** `tools/browser-checks` — `smoke.mjs` (19 шагов
   сквозного сценария), `overflow.mjs` (нет горизонтальной прокрутки:
   11 страниц × 360/390/768px × гость/вошёл), `screenshots.mjs`. Всё
   проходит. Подробности запуска — в README этой папки.
