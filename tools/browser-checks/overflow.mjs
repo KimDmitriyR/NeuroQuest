@@ -9,6 +9,22 @@ const session = await api("/api/quests/start", {
 });
 const missions = await api("/api/missions");
 
+// the grand finale needs a child who collected all 12 letters
+const ALL_CARDS = [
+  "finstartup-2-0-01", "finstartup-2-0-02", "finstartup-2-0-03", "finstartup-2-0-04",
+  "kibershchit-01", "kibershchit-02", "kibershchit-03", "kibershchit-04",
+  "ai-logika-01", "ai-logika-02", "ai-logika-03", "ai-logika-04",
+];
+const finalist = await api("/api/players", { method: "POST", token, body: { name: "Финалист" } });
+for (const qr of ALL_CARDS) {
+  const s = await api("/api/quests/start", { method: "POST", body: { player_id: finalist.id, qr_token: qr } });
+  for (let i = 0; i < 10; i++) {
+    const cur = await api(`/api/quests/sessions/${s.id}`);
+    const res = await api(`/api/quests/sessions/${s.id}/choices`, { method: "POST", body: { choice_id: cur.current_node.choices[0].id } });
+    if (res.completed) break;
+  }
+}
+
 const routes = [
   "/", "/missions", `/mission/${missions[0].id}`, `/mission/${missions[1].id}`,
   `/quest/${session.id}`, "/profile", "/settings", "/parent", "/review", "/terms", "/privacy",
@@ -49,6 +65,29 @@ for (const width of [360, 390, 768]) {
     }
   }
 }
+for (const width of [360, 390, 768]) {
+  const ctx = await newContext(browser);
+  const page = await ctx.newPage();
+  await page.setViewport({ width, height: 800, isMobile: width < 700, hasTouch: width < 700 });
+  await page.evaluateOnNewDocument(
+    (k1, t, k2, id) => { localStorage.setItem(k1, t); localStorage.setItem(k2, id); },
+    PARENT_TOKEN_KEY, token, PLAYER_KEY, finalist.id,
+  );
+  await page.goto(WEB + "/finale", { waitUntil: "networkidle0" });
+  await sleep(6800); // letters fly in -> hack effect -> stamp -> certificate
+  const m = await page.evaluate(() => ({
+    vw: document.documentElement.clientWidth,
+    sw: document.documentElement.scrollWidth,
+    cert: !!document.querySelector(".finale-page__certificate"),
+    certRight: document.querySelector(".finale-page__certificate")?.getBoundingClientRect().right ?? 0,
+  }));
+  if (!m.cert || m.sw > m.vw + 1 || m.certRight > m.vw + 1) {
+    bad++;
+    console.log(`FINALE ${width}px: certificate shown=${m.cert}, scrollWidth ${m.sw}, viewport ${m.vw}, certificate right edge ${Math.round(m.certRight)}`);
+  }
+  await ctx.close();
+}
+
 console.log(bad ? `\n${bad} overflow problem(s)` : `\nno horizontal overflow on ${routes.length} routes x 3 widths x 2 states`);
 await browser.close();
 process.exit(bad ? 1 : 0);

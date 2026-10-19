@@ -40,7 +40,7 @@ const MOBILE = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, 
 const openMenu = async (p) => { await p.click(".profile-menu__button"); await sleep(300); };
 const answerFirst = async (p) => { await p.click(".choice-button"); await sleep(900); };
 
-async function shot(name, path, viewport, { signedIn = true, fullPage = true, act } = {}) {
+async function shot(name, path, viewport, { signedIn = true, fullPage = true, act, childId = child.id } = {}) {
   const ctx = await newContext(browser);
   const page = await ctx.newPage();
   await page.setViewport(viewport);
@@ -48,7 +48,7 @@ async function shot(name, path, viewport, { signedIn = true, fullPage = true, ac
   if (signedIn) {
     await page.evaluateOnNewDocument(
       (k1, t, k2, id) => { localStorage.setItem(k1, t); localStorage.setItem(k2, id); },
-      PARENT_TOKEN_KEY, token, PLAYER_KEY, child.id,
+      PARENT_TOKEN_KEY, token, PLAYER_KEY, childId,
     );
   }
   await page.goto(WEB + path, { waitUntil: "networkidle0" });
@@ -58,6 +58,33 @@ async function shot(name, path, viewport, { signedIn = true, fullPage = true, ac
   await ctx.close();
   console.log("shot", name);
 }
+
+
+const ALL_CARDS = [
+  "finstartup-2-0-01", "finstartup-2-0-02", "finstartup-2-0-03", "finstartup-2-0-04",
+  "kibershchit-01", "kibershchit-02", "kibershchit-03", "kibershchit-04",
+  "ai-logika-01", "ai-logika-02", "ai-logika-03", "ai-logika-04",
+];
+let finalist = null;
+async function getFinalist() {
+  if (finalist) return finalist;
+  finalist = await api("/api/players", { method: "POST", token, body: { name: "Финалистка" } });
+  for (const qr of ALL_CARDS) {
+    const s = await api("/api/quests/start", { method: "POST", body: { player_id: finalist.id, qr_token: qr } });
+    for (let i = 0; i < 10; i++) {
+      const cur = await api(`/api/quests/sessions/${s.id}`);
+      const res = await api(`/api/quests/sessions/${s.id}/choices`, {
+        method: "POST", body: { choice_id: cur.current_node.choices[0].id },
+      });
+      if (res.completed) break;
+    }
+  }
+  return finalist;
+}
+const finaleShot = (name, viewport, waitMs) => async () => {
+  const f = await getFinalist();
+  await shot(name, "/finale", viewport, { fullPage: false, childId: f.id, act: () => sleep(waitMs) });
+};
 
 const jobs = {
   "home-guest-d": () => shot("home-guest-d", "/", DESKTOP, { signedIn: false }),
@@ -80,6 +107,12 @@ const jobs = {
   "review-d": () => shot("review-d", "/review", DESKTOP),
   "auth-d": () => shot("auth-d", "/parent", DESKTOP, { signedIn: false }),
   "auth-m": () => shot("auth-m", "/parent", MOBILE, { signedIn: false }),
+  "finale-assembly-m": finaleShot("finale-assembly-m", MOBILE, 300),
+  "finale-hack-m": finaleShot("finale-hack-m", MOBILE, 2300),
+  "finale-cert-m": finaleShot("finale-cert-m", MOBILE, 6600),
+  "finale-cert-d": finaleShot("finale-cert-d", DESKTOP, 6600),
+  "review-m": () => shot("review-m", "/review", MOBILE),
+  "settings-m": () => shot("settings-m", "/settings", MOBILE),
   "legal-m": () => shot("legal-m", "/privacy", MOBILE, { signedIn: false }),
 };
 const only = process.argv.slice(2);
