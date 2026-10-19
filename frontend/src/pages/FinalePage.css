@@ -1,12 +1,19 @@
 .finale-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #050810;
   color: white;
   display: flex;
+  /* phrase, stamp and certificate stack vertically - side by side they did
+     not fit on a phone and were clipped */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: clamp(14px, 3vw, 28px);
+  padding: 24px 16px;
   font-family: system-ui, sans-serif;
-  overflow: hidden;
+  /* the flying letters start outside the screen */
+  overflow-x: hidden;
 }
 
 .finale-page__status {
@@ -60,6 +67,7 @@
 }
 
 .finale-page__unlocked {
+  width: 100%;
   text-align: center;
 }
 
@@ -77,9 +85,9 @@
   display: inline-block;
   border: 4px solid #ff4d4d;
   color: #ff4d4d;
-  padding: 16px 28px;
+  padding: 12px clamp(16px, 5vw, 28px);
   font-weight: 800;
-  font-size: 20px;
+  font-size: clamp(15px, 4.6vw, 20px);
   transform: rotate(-6deg);
   border-radius: 8px;
   animation: stamp-in 0.4s ease-out both;
@@ -101,7 +109,8 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 20px;
+  width: 100%;
+  padding: 0;
 }
 
 .finale-page__certificate {
@@ -111,7 +120,7 @@
   border-radius: 12px;
   padding: clamp(22px, 5vw, 48px);
   text-align: center;
-  max-width: 420px;
+  width: min(420px, 100%);
 }
 
 .finale-page__cert-title {
