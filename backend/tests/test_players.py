@@ -26,15 +26,15 @@ async def test_get_player(client, auth_headers):
     )
     player_id = create_response.json()["id"]
 
-    response = await client.get(f"/api/players/{player_id}")
+    response = await client.get(f"/api/players/{player_id}", headers=auth_headers)
 
     assert response.status_code == 200
     assert response.json()["id"] == player_id
     assert response.json()["name"] == "Игрок Два"
 
 
-async def test_get_player_not_found(client):
-    response = await client.get(f"/api/players/{uuid.uuid4()}")
+async def test_get_player_not_found(client, auth_headers):
+    response = await client.get(f"/api/players/{uuid.uuid4()}", headers=auth_headers)
 
     assert response.status_code == 404
 

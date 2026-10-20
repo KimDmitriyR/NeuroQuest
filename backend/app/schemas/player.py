@@ -15,3 +15,10 @@ class PlayerRead(BaseModel):
     name: str
     created_at: datetime
     updated_at: datetime
+
+
+class PlayerTokenResponse(BaseModel):
+    """Credential for the child's device (sent as the X-Player-Token header)."""
+
+    access_token: str
+    token_type: str = "player"

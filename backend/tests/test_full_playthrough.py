@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.content.loader import load_all_cards
+from tests.helpers import create_player_on_device
 
 ALL_QR_TOKENS = [
     "finstartup-2-0-01",
@@ -25,19 +26,8 @@ async def _seed_content(db_session: AsyncSession):
 
 
 async def _create_player(client) -> str:
-    import uuid as _uuid
-
-    email = f"parent-{_uuid.uuid4()}@example.com"
-    reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
-    )
-    token = reg.json()["access_token"]
-    response = await client.post(
-        "/api/players",
-        json={"name": "Финалист"},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    return response.json()["id"]
+    player_id, _parent, _token = await create_player_on_device(client)
+    return player_id
 
 
 async def _play_card_choosing_first_option(client, player_id: str, qr_token: str) -> None:

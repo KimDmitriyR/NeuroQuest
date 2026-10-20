@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.content.loader import load_all_cards
+from tests.helpers import create_player_on_device
 
 QR_TOKEN = "finstartup-2-0-01"
 
@@ -14,19 +15,8 @@ async def _seed_content(db_session: AsyncSession):
 
 
 async def _create_player(client, name: str = "Тест") -> str:
-    import uuid as _uuid
-
-    email = f"parent-{_uuid.uuid4()}@example.com"
-    reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
-    )
-    token = reg.json()["access_token"]
-    response = await client.post(
-        "/api/players",
-        json={"name": name},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    return response.json()["id"]
+    player_id, _parent, _token = await create_player_on_device(client, name)
+    return player_id
 
 
 async def _pick(client, session_id: str, label: str) -> dict:
@@ -147,6 +137,8 @@ async def test_submitting_choice_from_wrong_node_is_rejected(client):
     assert response.status_code == 400
 
 
-async def test_get_session_unknown_id_returns_404(client):
-    response = await client.get(f"/api/quests/sessions/{uuid.uuid4()}")
+async def test_get_session_unknown_id_returns_404(client, auth_headers):
+    response = await client.get(
+        f"/api/quests/sessions/{uuid.uuid4()}", headers=auth_headers
+    )
     assert response.status_code == 404

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -21,6 +21,10 @@ class Player(Base):
             "parent_accounts.id", name="fk_players_parent_id_parent_accounts"
         ),
         nullable=False,
+    )
+    # bump to revoke every access token already handed out for this child
+    token_version: Mapped[int] = mapped_column(
+        Integer, server_default="0", nullable=False
     )
 
     created_at: Mapped[datetime] = mapped_column(

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.content.loader import load_all_cards, load_all_missions
 from app.models.envelope_mission import EnvelopeMission
+from tests.helpers import create_player_on_device
 
 MISSION_TITLE = "3D-копилка с бюджетными секторами"
 
@@ -24,19 +25,8 @@ async def _mission_id(db_session: AsyncSession) -> str:
 
 
 async def _create_player(client) -> str:
-    import uuid as _uuid
-
-    email = f"parent-{_uuid.uuid4()}@example.com"
-    reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
-    )
-    token = reg.json()["access_token"]
-    response = await client.post(
-        "/api/players",
-        json={"name": "Тест"},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    return response.json()["id"]
+    player_id, _parent, _token = await create_player_on_device(client)
+    return player_id
 
 
 async def test_start_attempt(client, db_session):
@@ -160,16 +150,8 @@ async def test_list_missions(client, db_session):
 
 
 async def _create_player_with_headers(client) -> tuple[str, dict]:
-    import uuid as _uuid
-
-    email = f"parent-{_uuid.uuid4()}@example.com"
-    reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
-    )
-    token = reg.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    response = await client.post("/api/players", json={"name": "Тест"}, headers=headers)
-    return response.json()["id"], headers
+    player_id, parent_headers, _token = await create_player_on_device(client)
+    return player_id, parent_headers
 
 
 async def test_pending_queue_lists_submitted_and_shrinks_after_review(

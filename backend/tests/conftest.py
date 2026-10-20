@@ -47,6 +47,15 @@ async def _clean_tables():
         await conn.execute(text(f"TRUNCATE TABLE {table_names} CASCADE"))
 
 
+@pytest.fixture(autouse=True)
+def _reset_login_guard():
+    from app.core.login_guard import login_guard
+
+    login_guard.clear()
+    yield
+    login_guard.clear()
+
+
 @pytest.fixture
 async def db_session() -> AsyncSession:
     TestSessionLocal = async_sessionmaker(bind=app_engine, expire_on_commit=False)

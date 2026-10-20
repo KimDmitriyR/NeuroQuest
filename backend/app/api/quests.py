@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import PlayerAccess, get_db, get_player_access
 from app.repositories.quest_repository import QuestRepository
 from app.repositories.quest_session_repository import QuestSessionRepository
 from app.schemas.quest import (
@@ -42,11 +42,26 @@ async def _session_view(service: QuestService, session) -> SessionView:
     )
 
 
+async def _get_own_session(
+    service: QuestService, access: PlayerAccess, session_id: uuid.UUID
+):
+    """Load a session the caller is allowed to touch (401/404 otherwise)."""
+    access.ensure_authenticated()
+    try:
+        session = await service.get_session(session_id)
+    except QuestSessionNotFoundError:
+        raise HTTPException(status_code=404, detail="Session not found")
+    await access.require(session.player_id, not_found="Session not found")
+    return session
+
+
 @router.post("/start", response_model=SessionView, status_code=201)
 async def start_quest(
     payload: StartQuestRequest,
+    access: PlayerAccess = Depends(get_player_access),
     service: QuestService = Depends(get_quest_service),
 ) -> SessionView:
+    await access.require(payload.player_id)
     try:
         session = await service.start_quest(payload.player_id, payload.qr_token)
     except QuestCardNotFoundError:
@@ -57,12 +72,10 @@ async def start_quest(
 @router.get("/sessions/{session_id}", response_model=SessionView)
 async def get_session(
     session_id: uuid.UUID,
+    access: PlayerAccess = Depends(get_player_access),
     service: QuestService = Depends(get_quest_service),
 ) -> SessionView:
-    try:
-        session = await service.get_session(session_id)
-    except QuestSessionNotFoundError:
-        raise HTTPException(status_code=404, detail="Session not found")
+    session = await _get_own_session(service, access, session_id)
     return await _session_view(service, session)
 
 
@@ -70,12 +83,10 @@ async def get_session(
 async def submit_choice(
     session_id: uuid.UUID,
     payload: SubmitChoiceRequest,
+    access: PlayerAccess = Depends(get_player_access),
     service: QuestService = Depends(get_quest_service),
 ) -> ChoiceResultView:
-    try:
-        session = await service.get_session(session_id)
-    except QuestSessionNotFoundError:
-        raise HTTPException(status_code=404, detail="Session not found")
+    session = await _get_own_session(service, access, session_id)
 
     try:
         result = await service.submit_choice(session, payload.choice_id)

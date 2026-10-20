@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_parent, get_db
+from app.api.deps import PlayerAccess, get_current_parent, get_db, get_player_access
 from app.models.parent_account import ParentAccount
 from app.repositories.mission_repository import MissionRepository
 from app.repositories.player_repository import PlayerRepository
@@ -93,8 +93,10 @@ async def get_mission(
 async def start_attempt(
     mission_id: uuid.UUID,
     payload: StartAttemptRequest,
+    access: PlayerAccess = Depends(get_player_access),
     service: MissionService = Depends(get_mission_service),
 ) -> AttemptView:
+    await access.require(payload.player_id)
     try:
         attempt = await service.start_attempt(payload.player_id, mission_id)
     except MissionNotFoundError:
@@ -106,9 +108,12 @@ async def start_attempt(
 async def submit_attempt(
     attempt_id: uuid.UUID,
     payload: SubmitAttemptRequest,
+    access: PlayerAccess = Depends(get_player_access),
     service: MissionService = Depends(get_mission_service),
 ) -> SubmitAttemptResultView:
+    access.ensure_authenticated()
     attempt = await _get_attempt_or_404(service, attempt_id)
+    await access.require(attempt.player_id, not_found="Attempt not found")
     try:
         attempt, is_correct = await service.submit_attempt(
             attempt, payload.photo_url, payload.text_answer

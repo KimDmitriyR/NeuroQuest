@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.content.loader import load_all_cards
+from tests.helpers import create_player_on_device
 
 QR_TOKEN = "finstartup-2-0-01"
 
@@ -14,19 +15,8 @@ async def _seed_content(db_session: AsyncSession):
 
 
 async def _create_player(client) -> str:
-    import uuid as _uuid
-
-    email = f"parent-{_uuid.uuid4()}@example.com"
-    reg = await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret123", "accept_terms": True}
-    )
-    token = reg.json()["access_token"]
-    response = await client.post(
-        "/api/players",
-        json={"name": "Тест"},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    return response.json()["id"]
+    player_id, _parent, _token = await create_player_on_device(client)
+    return player_id
 
 
 async def _complete_card_1(client, player_id: str) -> None:
@@ -69,8 +59,10 @@ async def test_achievements_after_playthrough(client):
     ]
 
 
-async def test_achievements_unknown_player_404(client):
-    response = await client.get(f"/api/players/{uuid.uuid4()}/achievements")
+async def test_achievements_unknown_player_404(client, auth_headers):
+    response = await client.get(
+        f"/api/players/{uuid.uuid4()}/achievements", headers=auth_headers
+    )
     assert response.status_code == 404
 
 
@@ -98,6 +90,8 @@ async def test_master_code_reveals_letter_after_playthrough(client):
     assert slot["unlocked"] is True
 
 
-async def test_master_code_unknown_player_404(client):
-    response = await client.get(f"/api/players/{uuid.uuid4()}/master-code")
+async def test_master_code_unknown_player_404(client, auth_headers):
+    response = await client.get(
+        f"/api/players/{uuid.uuid4()}/master-code", headers=auth_headers
+    )
     assert response.status_code == 404

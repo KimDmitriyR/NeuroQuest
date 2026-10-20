@@ -22,3 +22,10 @@ class PlayerRepository:
         await self.db.commit()
         await self.db.refresh(player)
         return player
+
+    async def bump_token_version(self, player: Player) -> Player:
+        """Revoke every access token issued so far for this player."""
+        player.token_version = Player.token_version + 1
+        await self.db.commit()
+        await self.db.refresh(player)
+        return player
