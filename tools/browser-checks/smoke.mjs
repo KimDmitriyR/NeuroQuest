@@ -1,6 +1,6 @@
 // End-to-end click-through of the main user journey, in a real browser.
 // Run:  node smoke.mjs      (backend on :8000 with seeded content, frontend on :5173)
-import { WEB, launchBrowser, newContext, sleep } from "./common.mjs";
+import { WEB, api, launchBrowser, newContext, seedParentAndChild, sleep } from "./common.mjs";
 
 const browser = await launchBrowser();
 const ctx = await newContext(browser);
@@ -108,9 +108,47 @@ await sleep(500);
 await check("sign out returns to the guest home", (await text()).includes("Профиль ребёнка создаёт родитель"));
 const stored = await page.evaluate(() => [
   localStorage.getItem("neuroquest.parent_token"),
-  localStorage.getItem("neuroquest.player_id"),
+  localStorage.getItem("neuroquest.player_token"),
 ]);
 await check("sign out cleared both parent token and active child", stored[0] === null && stored[1] === null);
+
+// 9. the CHILD'S OWN DEVICE: only the link the parent sent, no parent login there
+{
+  const { token: parentToken, child, playerToken } = await seedParentAndChild("Дима");
+  const kidCtx = await newContext(browser);
+  const kid = await kidCtx.newPage();
+  await kid.setViewport({ width: 390, height: 800, isMobile: true, hasTouch: true });
+  kid.on("pageerror", (e) => problems.push("pageerror (child device): " + e.message));
+  const kidText = () => kid.evaluate(() => document.body.innerText);
+  const kidWait = (t) =>
+    kid.waitForFunction((x) => document.body.innerText.includes(x), { timeout: 8000 }, t).catch(() => {});
+
+  await kid.goto(`${WEB}/?t=${encodeURIComponent(playerToken)}`, { waitUntil: "networkidle0" });
+  await kidWait("Привет, Дима");
+  await check("child link signs the child in with no parent login", (await kidText()).includes("Привет, Дима"));
+  await check("the token is scrubbed from the address bar", !kid.url().includes("t="));
+  const kidStore = await kid.evaluate(() => [
+    localStorage.getItem("neuroquest.parent_token"),
+    localStorage.getItem("neuroquest.player_token"),
+  ]);
+  await check("child device holds a player token and NO parent token", kidStore[0] === null && !!kidStore[1]);
+
+  // the parent resets access (the link leaked): the device must drop out
+  await api(`/api/players/${child.id}/access-token/reset`, { method: "POST", token: parentToken });
+  await kid.goto(WEB + "/", { waitUntil: "networkidle0" });
+  await kidWait("Профиль ребёнка создаёт родитель");
+  await check("after a reset the old link no longer signs in", (await kidText()).includes("Профиль ребёнка создаёт родитель"));
+  await check(
+    "the dead token was cleared from the device",
+    (await kid.evaluate(() => localStorage.getItem("neuroquest.player_token"))) === null,
+  );
+
+  // a bare player id (the old /?child=<id> links) grants nothing any more
+  await kid.goto(`${WEB}/?child=${child.id}`, { waitUntil: "networkidle0" });
+  await kidWait("Профиль ребёнка создаёт родитель");
+  await check("old /?child=<id> links no longer sign anyone in", (await kidText()).includes("Профиль ребёнка создаёт родитель"));
+  await kidCtx.close();
+}
 
 console.log(problems.length ? "\nBROWSER PROBLEMS:\n" + problems.join("\n") : "\nno console errors / page errors");
 await browser.close();

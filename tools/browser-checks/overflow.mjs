@@ -1,10 +1,11 @@
 // Fails if any page scrolls horizontally on phone/tablet widths.
 // Run:  node overflow.mjs
-import { WEB, api, launchBrowser, newContext, seedParentAndChild, sleep, PARENT_TOKEN_KEY, PLAYER_KEY } from "./common.mjs";
+import { WEB, api, launchBrowser, newContext, seedParentAndChild, issuePlayerToken, sleep, PARENT_TOKEN_KEY, PLAYER_TOKEN_KEY } from "./common.mjs";
 
-const { token, child } = await seedParentAndChild("ОченьДлинноеИмяРебёнкаДляПроверки");
+const { token, child, playerToken } = await seedParentAndChild("ОченьДлинноеИмяРебёнкаДляПроверки");
 const session = await api("/api/quests/start", {
   method: "POST",
+  token,
   body: { player_id: child.id, qr_token: "finstartup-2-0-01" },
 });
 const missions = await api("/api/missions");
@@ -16,11 +17,12 @@ const ALL_CARDS = [
   "ai-logika-01", "ai-logika-02", "ai-logika-03", "ai-logika-04",
 ];
 const finalist = await api("/api/players", { method: "POST", token, body: { name: "Финалист" } });
+const finalistToken = await issuePlayerToken(token, finalist.id);
 for (const qr of ALL_CARDS) {
-  const s = await api("/api/quests/start", { method: "POST", body: { player_id: finalist.id, qr_token: qr } });
+  const s = await api("/api/quests/start", { method: "POST", token, body: { player_id: finalist.id, qr_token: qr } });
   for (let i = 0; i < 10; i++) {
-    const cur = await api(`/api/quests/sessions/${s.id}`);
-    const res = await api(`/api/quests/sessions/${s.id}/choices`, { method: "POST", body: { choice_id: cur.current_node.choices[0].id } });
+    const cur = await api(`/api/quests/sessions/${s.id}`, { token });
+    const res = await api(`/api/quests/sessions/${s.id}/choices`, { method: "POST", token, body: { choice_id: cur.current_node.choices[0].id } });
     if (res.completed) break;
   }
 }
@@ -40,8 +42,8 @@ for (const width of [360, 390, 768]) {
       await page.setViewport({ width, height: 800, isMobile: width < 700, hasTouch: width < 700 });
       if (signedIn) {
         await page.evaluateOnNewDocument(
-          (k1, t, k2, id) => { localStorage.setItem(k1, t); localStorage.setItem(k2, id); },
-          PARENT_TOKEN_KEY, token, PLAYER_KEY, child.id,
+          (k1, t, k2, pt) => { localStorage.setItem(k1, t); localStorage.setItem(k2, pt); },
+          PARENT_TOKEN_KEY, token, PLAYER_TOKEN_KEY, playerToken,
         );
       }
       await page.goto(WEB + route, { waitUntil: "networkidle0" });
@@ -70,8 +72,8 @@ for (const width of [360, 390, 768]) {
   const page = await ctx.newPage();
   await page.setViewport({ width, height: 800, isMobile: width < 700, hasTouch: width < 700 });
   await page.evaluateOnNewDocument(
-    (k1, t, k2, id) => { localStorage.setItem(k1, t); localStorage.setItem(k2, id); },
-    PARENT_TOKEN_KEY, token, PLAYER_KEY, finalist.id,
+    (k1, t, k2, pt) => { localStorage.setItem(k1, t); localStorage.setItem(k2, pt); },
+    PARENT_TOKEN_KEY, token, PLAYER_TOKEN_KEY, finalistToken,
   );
   await page.goto(WEB + "/finale", { waitUntil: "networkidle0" });
   await sleep(6800); // letters fly in -> hack effect -> stamp -> certificate

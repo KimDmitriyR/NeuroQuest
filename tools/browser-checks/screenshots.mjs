@@ -2,35 +2,36 @@
 // Run:  node screenshots.mjs [name ...]     -> PNGs in ./out  (git-ignored)
 import { mkdirSync } from "node:fs";
 import {
-  WEB, api, launchBrowser, newContext, seedParentAndChild, sleep, PARENT_TOKEN_KEY, PLAYER_KEY,
+  WEB, api, launchBrowser, newContext, seedParentAndChild, issuePlayerToken, sleep, PARENT_TOKEN_KEY, PLAYER_TOKEN_KEY,
 } from "./common.mjs";
 
 const OUT = new URL("./out/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 mkdirSync(OUT, { recursive: true });
 
 // ---- seed: a child who finished 2 cards, has a card in progress and a photo waiting for review
-const { token, child } = await seedParentAndChild("Маша");
+const { token, child, playerToken } = await seedParentAndChild("Маша");
 await api("/api/players", { method: "POST", token, body: { name: "Артём" } });
 
 async function playCard(qr, labels) {
-  const s = await api("/api/quests/start", { method: "POST", body: { player_id: child.id, qr_token: qr } });
+  const s = await api("/api/quests/start", { method: "POST", token, body: { player_id: child.id, qr_token: qr } });
   for (const label of labels) {
-    const cur = await api(`/api/quests/sessions/${s.id}`);
+    const cur = await api(`/api/quests/sessions/${s.id}`, { token });
     const c = cur.current_node.choices.find((x) => x.label === label);
-    await api(`/api/quests/sessions/${s.id}/choices`, { method: "POST", body: { choice_id: c.id } });
+    await api(`/api/quests/sessions/${s.id}/choices`, { method: "POST", token, body: { choice_id: c.id } });
   }
   return s;
 }
 await playCard("finstartup-2-0-01", ["C", "C", "C"]);
 await playCard("kibershchit-02", ["B", "A", "B"]);
-const openQuest = await api("/api/quests/start", { method: "POST", body: { player_id: child.id, qr_token: "ai-logika-01" } });
+const openQuest = await api("/api/quests/start", { method: "POST", token, body: { player_id: child.id, qr_token: "ai-logika-01" } });
 
 const missions = await api("/api/missions");
 const photoMission = missions.find((m) => m.validation_type === "photo");
-const attempt = await api(`/api/missions/${photoMission.id}/attempts`, { method: "POST", body: { player_id: child.id } });
+const attempt = await api(`/api/missions/${photoMission.id}/attempts`, { method: "POST", token, body: { player_id: child.id } });
 const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect width='800' height='600' fill='#fda085'/><circle cx='400' cy='300' r='120' fill='white' opacity='.7'/><text x='400' y='318' font-size='46' text-anchor='middle' fill='#7a1fc4' font-family='sans-serif'>Копилка 4/3/2/1</text></svg>`;
 await api(`/api/missions/attempts/${attempt.id}/submit`, {
   method: "POST",
+  token,
   body: { photo_url: "data:image/svg+xml;utf8," + encodeURIComponent(svg) },
 });
 
@@ -40,15 +41,15 @@ const MOBILE = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, 
 const openMenu = async (p) => { await p.click(".profile-menu__button"); await sleep(300); };
 const answerFirst = async (p) => { await p.click(".choice-button"); await sleep(900); };
 
-async function shot(name, path, viewport, { signedIn = true, fullPage = true, act, childId = child.id } = {}) {
+async function shot(name, path, viewport, { signedIn = true, fullPage = true, act, childToken = playerToken } = {}) {
   const ctx = await newContext(browser);
   const page = await ctx.newPage();
   await page.setViewport(viewport);
   page.on("pageerror", (e) => console.log(`[pageerror ${name}]`, e.message));
   if (signedIn) {
     await page.evaluateOnNewDocument(
-      (k1, t, k2, id) => { localStorage.setItem(k1, t); localStorage.setItem(k2, id); },
-      PARENT_TOKEN_KEY, token, PLAYER_KEY, childId,
+      (k1, t, k2, pt) => { localStorage.setItem(k1, t); localStorage.setItem(k2, pt); },
+      PARENT_TOKEN_KEY, token, PLAYER_TOKEN_KEY, childToken,
     );
   }
   await page.goto(WEB + path, { waitUntil: "networkidle0" });
@@ -68,13 +69,14 @@ const ALL_CARDS = [
 let finalist = null;
 async function getFinalist() {
   if (finalist) return finalist;
-  finalist = await api("/api/players", { method: "POST", token, body: { name: "Финалистка" } });
+  const created = await api("/api/players", { method: "POST", token, body: { name: "Финалистка" } });
+  finalist = { ...created, token: await issuePlayerToken(token, created.id) };
   for (const qr of ALL_CARDS) {
-    const s = await api("/api/quests/start", { method: "POST", body: { player_id: finalist.id, qr_token: qr } });
+    const s = await api("/api/quests/start", { method: "POST", token, body: { player_id: finalist.id, qr_token: qr } });
     for (let i = 0; i < 10; i++) {
-      const cur = await api(`/api/quests/sessions/${s.id}`);
+      const cur = await api(`/api/quests/sessions/${s.id}`, { token });
       const res = await api(`/api/quests/sessions/${s.id}/choices`, {
-        method: "POST", body: { choice_id: cur.current_node.choices[0].id },
+        method: "POST", token, body: { choice_id: cur.current_node.choices[0].id },
       });
       if (res.completed) break;
     }
@@ -83,7 +85,7 @@ async function getFinalist() {
 }
 const finaleShot = (name, viewport, waitMs) => async () => {
   const f = await getFinalist();
-  await shot(name, "/finale", viewport, { fullPage: false, childId: f.id, act: () => sleep(waitMs) });
+  await shot(name, "/finale", viewport, { fullPage: false, childToken: f.token, act: () => sleep(waitMs) });
 };
 
 const jobs = {

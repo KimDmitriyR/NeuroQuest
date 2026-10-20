@@ -10,7 +10,7 @@ import puppeteer from "puppeteer-core";
 export const API = process.env.API_URL ?? "http://localhost:8000";
 export const WEB = process.env.WEB_URL ?? "http://localhost:5173";
 export const PARENT_TOKEN_KEY = "neuroquest.parent_token";
-export const PLAYER_KEY = "neuroquest.player_id";
+export const PLAYER_TOKEN_KEY = "neuroquest.player_token";
 
 export async function launchBrowser() {
   if (process.env.CHROME_PATH) {
@@ -44,6 +44,15 @@ export async function api(path, { method = "GET", token, body } = {}) {
   return res.json();
 }
 
+/** Parent-only: the credential a child's device carries (what the child link contains). */
+export async function issuePlayerToken(parentToken, playerId) {
+  const res = await api(`/api/players/${playerId}/access-token`, {
+    method: "POST",
+    token: parentToken,
+  });
+  return res.access_token;
+}
+
 /** Registers a throw-away parent + one child. Needs the backend running with seeded content. */
 export async function seedParentAndChild(childName = "Маша") {
   const email = `check-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
@@ -56,7 +65,8 @@ export async function seedParentAndChild(childName = "Маша") {
     token: reg.access_token,
     body: { name: childName },
   });
-  return { email, token: reg.access_token, child };
+  const playerToken = await issuePlayerToken(reg.access_token, child.id);
+  return { email, token: reg.access_token, child, playerToken };
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
