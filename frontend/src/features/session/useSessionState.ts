@@ -1,57 +1,68 @@
 import { useCallback, useEffect, useState } from "react";
 import { authApi } from "../../api/auth";
-import { PARENT_TOKEN_KEY } from "../../api/client";
+import {
+  ApiError,
+  PARENT_TOKEN_KEY,
+  PLAYER_TOKEN_REJECTED_EVENT,
+} from "../../api/client";
 import { playersApi } from "../../api/players";
 import type { ParentRead, Player } from "../../types/api";
+import {
+  clearPlayerToken,
+  consumePlayerTokenFromUrl,
+  getPlayerToken,
+  storePlayerToken,
+} from "./playerToken";
 import type { SessionValue } from "./session-context";
 
-export const PLAYER_STORAGE_KEY = "neuroquest.player_id";
-
-// a parent can send a child a link like /?child=<id>: remember that profile
-// on this device and strip the parameter from the address bar
-function consumeChildParamFromUrl(): string | null {
-  const url = new URL(window.location.href);
-  const childId = url.searchParams.get("child");
-  if (!childId) return null;
-
-  localStorage.setItem(PLAYER_STORAGE_KEY, childId);
-  url.searchParams.delete("child");
-  window.history.replaceState({}, "", url.toString());
-  return childId;
-}
-
-function readInitialPlayerId(): string | null {
-  return consumeChildParamFromUrl() ?? localStorage.getItem(PLAYER_STORAGE_KEY);
+function readInitialPlayerToken(): string | null {
+  return consumePlayerTokenFromUrl() ?? getPlayerToken();
 }
 
 /** The single source of truth for "who is using the app right now". */
 export function useSessionState(): SessionValue {
-  // --- active child profile ---
-  const [playerId, setPlayerId] = useState(readInitialPlayerId);
+  // --- active child profile (identified by the token this device holds) ---
+  const [playerToken, setPlayerToken] = useState(readInitialPlayerToken);
   const [player, setPlayer] = useState<Player | null>(null);
-  const [playerLoading, setPlayerLoading] = useState(() => !!playerId);
+  const [playerLoading, setPlayerLoading] = useState(() => !!playerToken);
 
   useEffect(() => {
-    if (!playerId) return;
+    if (!playerToken) return;
     let cancelled = false;
     playersApi
-      .get(playerId)
+      .me()
       .then((p) => !cancelled && setPlayer(p))
-      .catch(() => {
-        localStorage.removeItem(PLAYER_STORAGE_KEY);
-        if (!cancelled) setPlayerId(null);
+      .catch((error) => {
+        // only a rejected token means "not signed in"; a network hiccup must
+        // not throw the child out of their profile
+        if (error instanceof ApiError && error.status === 401) {
+          clearPlayerToken();
+          if (!cancelled) setPlayerToken(null);
+        }
       })
       .finally(() => !cancelled && setPlayerLoading(false));
     return () => {
       cancelled = true;
     };
-  }, [playerId]);
+  }, [playerToken]);
 
   const clearPlayer = useCallback(() => {
-    localStorage.removeItem(PLAYER_STORAGE_KEY);
-    setPlayerId(null);
+    clearPlayerToken();
+    setPlayerToken(null);
     setPlayer(null);
   }, []);
+
+  const activatePlayerToken = useCallback((token: string) => {
+    storePlayerToken(token);
+    setPlayerLoading(true);
+    setPlayerToken(token);
+  }, []);
+
+  // the server told us this device's link was reset by the parent
+  useEffect(() => {
+    window.addEventListener(PLAYER_TOKEN_REJECTED_EVENT, clearPlayer);
+    return () => window.removeEventListener(PLAYER_TOKEN_REJECTED_EVENT, clearPlayer);
+  }, [clearPlayer]);
 
   // --- logged-in parent ---
   const [parent, setParent] = useState<ParentRead | null>(null);
@@ -99,6 +110,7 @@ export function useSessionState(): SessionValue {
     player,
     playerLoading,
     clearPlayer,
+    activatePlayerToken,
     parent,
     parentLoading,
     login,

@@ -5,6 +5,11 @@ export interface Player {
   updated_at: string;
 }
 
+export interface PlayerToken {
+  access_token: string;
+  token_type: string;
+}
+
 export interface ParentRead {
   id: string;
   email: string;

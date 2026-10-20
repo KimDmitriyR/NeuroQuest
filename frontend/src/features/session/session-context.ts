@@ -6,6 +6,8 @@ export interface SessionValue {
   player: Player | null;
   playerLoading: boolean;
   clearPlayer: () => void;
+  /** make this device play as the child the token belongs to */
+  activatePlayerToken: (token: string) => void;
 
   /** logged-in parent (null = not logged in) */
   parent: ParentRead | null;
