@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_parent, get_db
+from app.core.login_guard import login_guard
 from app.models.parent_account import ParentAccount
 from app.repositories.parent_repository import ParentRepository
 from app.schemas.auth import LoginRequest, ParentRead, RegisterRequest, TokenResponse
@@ -33,12 +34,27 @@ async def register(
 @router.post("/login", response_model=TokenResponse)
 async def login(
     payload: LoginRequest,
+    request: Request,
     service: AuthService = Depends(get_auth_service),
 ) -> TokenResponse:
+    ip = request.client.host if request.client else "unknown"
+
+    # refuse BEFORE hitting the DB / bcrypt, so a flood stays cheap
+    retry_after = login_guard.retry_after(ip, payload.email)
+    if retry_after:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed login attempts. Try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     try:
         parent, token = await service.login(payload.email, payload.password)
     except InvalidCredentialsError:
+        login_guard.record_failure(ip, payload.email)
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    login_guard.record_success(ip, payload.email)
     return TokenResponse(access_token=token, parent=ParentRead.model_validate(parent))
 
 
