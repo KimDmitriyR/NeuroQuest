@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { QuestCodeForm } from "../features/layout/QuestCodeForm";
+import { Mascot, Sparkle } from "../features/brand/Mascot";
 import { Icon, type IconName } from "../features/layout/Icon";
 import { useStartQuest } from "../features/quest/useStartQuest";
 import { ProgressTiles } from "../features/progress/ProgressTiles";
@@ -17,12 +18,18 @@ function consumeQuestParamFromUrl(): string | null {
   return token;
 }
 
-const SECTIONS: { to: string; icon: IconName; title: string; text: string }[] = [
-  { to: "/missions", icon: "mail", title: "Конверты с миссиями", text: "Задания из реального мира: фото, шифры, алгоритмы" },
-  { to: "/profile", icon: "trophy", title: "Мои достижения", text: "Награды и собранный мастер-код" },
-  { to: "/parent", icon: "users", title: "Кабинет родителя", text: "Профили детей и проверка миссий" },
-  { to: "/settings", icon: "sliders", title: "Настройки", text: "Аккаунт, профиль и документы" },
+const SECTIONS: { to: string; icon: IconName; title: string; text: string; tone: string }[] = [
+  { to: "/missions", icon: "mail", title: "Конверты с миссиями", text: "Задания из реального мира: фото, шифры, алгоритмы", tone: "coral" },
+  { to: "/profile", icon: "trophy", title: "Мои достижения", text: "Награды и собранный мастер-код", tone: "butter" },
+  { to: "/parent", icon: "users", title: "Кабинет родителя", text: "Профили детей и проверка миссий", tone: "cobalt" },
+  { to: "/settings", icon: "sliders", title: "Настройки", text: "Аккаунт, профиль и документы", tone: "lilac" },
 ];
+
+const SECTORS = [
+  { tone: "coral", kind: "bean", title: "Финансы", text: "Деньги, покупки и уловки, на которые легко попасться" },
+  { tone: "cobalt", kind: "squircle", title: "Кибербезопасность", text: "Пароли, мошенники и что делать, если что-то пошло не так" },
+  { tone: "lilac", kind: "cloud", title: "Искусственный интеллект", text: "Как работают нейросети и когда им нельзя верить" },
+] as const;
 
 const STEPS = [
   { n: 1, title: "Родитель создаёт профиль", text: "Регистрация в кабинете родителя и профиль для ребёнка." },
@@ -44,48 +51,78 @@ export function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="hero__inner">
-          <div className="hero__text">
-            <span className="hero__badge">Образовательные квесты</span>
-            <h1 className="hero__title">
-              {player ? `Привет, ${player.name}! 👋` : "Квесты, которые учат жить в цифровом мире"}
-            </h1>
-            <p className="hero__lead">
-              {player
-                ? "Отсканируй QR-код на карточке или введи её код — и квест начнётся."
-                : "Финансы, кибербезопасность и искусственный интеллект — в формате игры с карточками и заданиями."}
-            </p>
-            {player ? (
-              <div className="hero__form"><QuestCodeForm variant="hero" /></div>
-            ) : (
-              <div className="hero__actions">
-                <Link className="btn btn--white" to="/parent">Кабинет родителя</Link>
-                <span className="hero__note">Профиль ребёнка создаёт родитель</span>
-              </div>
-            )}
-          </div>
+        <Mascot kind="cloud" size={150} className="hero__mascot hero__mascot--cloud" />
+        <Mascot kind="squircle" size={128} className="hero__mascot hero__mascot--squircle" />
+        <Mascot kind="bean" size={86} className="hero__mascot hero__mascot--bean" />
+        <Sparkle size={30} className="hero__sparkle hero__sparkle--a" />
+        <Sparkle size={20} color="var(--lilac)" className="hero__sparkle hero__sparkle--b" />
+        <Sparkle size={24} color="var(--coral)" className="hero__sparkle hero__sparkle--c" />
 
-          <div className="hero__art" aria-hidden="true">
-            <div className="hero-card hero-card--a"><span>💸</span>Финансы</div>
-            <div className="hero-card hero-card--b"><span>🛡️</span>Кибербезопасность</div>
-            <div className="hero-card hero-card--c"><span>🤖</span>ИИ</div>
-          </div>
+        <div className="hero__inner">
+          <h1 className="hero__title">
+            {player ? (
+              <>Привет, {player.name}!</>
+            ) : (
+              <>
+                Квесты, которые учат
+                <span className="hero__script">жить в цифровом мире</span>
+              </>
+            )}
+          </h1>
+          <p className="hero__lead">
+            {player
+              ? "Отсканируй QR-код на карточке или введи её код — и квест начнётся."
+              : "Финансы, кибербезопасность и искусственный интеллект — в формате игры с карточками и заданиями."}
+          </p>
+          {player ? (
+            <div className="hero__form"><QuestCodeForm variant="hero" /></div>
+          ) : (
+            <div className="hero__actions">
+              <Link className="btn hero__cta" to="/parent">Кабинет родителя</Link>
+              <span className="hero__note">Профиль ребёнка создаёт родитель</span>
+            </div>
+          )}
         </div>
+
+        <ul className="sectors">
+          {SECTORS.map((s) => (
+            <li key={s.title} className={`sector sector--${s.tone}`}>
+              <div className="sector__title">{s.title}</div>
+              <p className="sector__text">{s.text}</p>
+              <Mascot kind={s.kind} size={74} className="sector__mascot" />
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <div className="page">
+      <div className="page home">
         {player && (
           <>
-            <h2 className="section-title section-title--first">Твой прогресс</h2>
+            <h2 className="home__title">Твой прогресс</h2>
             <ProgressTiles playerId={player.id} />
           </>
         )}
 
-        <h2 className={`section-title${player ? "" : " section-title--first"}`}>Разделы</h2>
+        {!player && (
+          <>
+            <h2 className="home__title">Простой путь к первому квесту</h2>
+            <ol className="steps">
+              {STEPS.map((s) => (
+                <li key={s.n} className={`step step--${s.n}`}>
+                  <span className="step__n">{s.n}</span>
+                  <div className="step__title">{s.title}</div>
+                  <p className="step__text">{s.text}</p>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+
+        <h2 className="home__title">Разделы</h2>
         <div className="quick-grid">
           {SECTIONS.map((s) => (
-            <Link key={s.to} to={s.to} className="quick-tile card">
-              <span className="quick-tile__icon"><Icon name={s.icon} size={26} /></span>
+            <Link key={s.to} to={s.to} className="quick-tile">
+              <span className={`quick-tile__icon quick-tile__icon--${s.tone}`}><Icon name={s.icon} size={26} /></span>
               <span className="quick-tile__title">{s.title}</span>
               <span className="quick-tile__text">{s.text}</span>
             </Link>
@@ -93,18 +130,16 @@ export function HomePage() {
         </div>
 
         {!player && (
-          <>
-            <h2 className="section-title">Как это работает</h2>
-            <div className="steps">
-              {STEPS.map((s) => (
-                <div key={s.n} className="step card">
-                  <span className="step__n">{s.n}</span>
-                  <div className="step__title">{s.title}</div>
-                  <div className="step__text">{s.text}</div>
-                </div>
-              ))}
+          <section className="cta-band">
+            <Mascot kind="bean" size={110} className="cta-band__mascot" />
+            <div className="cta-band__body">
+              <h2 className="cta-band__title">Учимся, играя</h2>
+              <p className="cta-band__text">
+                Начни с кабинета родителя: создай профиль ребёнка и выдай ему ссылку, чтобы он играл со своего устройства.
+              </p>
+              <Link className="btn btn--white" to="/parent">Создать профиль</Link>
             </div>
-          </>
+          </section>
         )}
       </div>
     </>

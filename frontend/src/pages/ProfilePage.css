@@ -7,7 +7,7 @@
   color: #fff;
   background:
     radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.2), transparent 40%),
-    linear-gradient(110deg, #b50f9a 0%, #7a1fc4 55%, #3d0f66 100%);
+    linear-gradient(120deg, #8f6fe0 0%, #5a86f4 100%);
 }
 .profile-hero__avatar {
   display: grid;
