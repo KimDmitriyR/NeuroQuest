@@ -54,8 +54,11 @@ async def _get_attempt_or_404(service: MissionService, attempt_id: uuid.UUID):
 
 @router.get("", response_model=list[MissionView])
 async def list_missions(
+    access: PlayerAccess = Depends(get_player_access),
     service: MissionService = Depends(get_mission_service),
 ) -> list[MissionView]:
+    # the catalog is for signed-in users only (a parent or a child's device)
+    access.ensure_authenticated()
     missions = await service.mission_repo.list_missions()
     return [_mission_view(m) for m in missions]
 
@@ -81,8 +84,10 @@ async def list_pending_attempts(
 @router.get("/{mission_id}", response_model=MissionView)
 async def get_mission(
     mission_id: uuid.UUID,
+    access: PlayerAccess = Depends(get_player_access),
     service: MissionService = Depends(get_mission_service),
 ) -> MissionView:
+    access.ensure_authenticated()
     mission = await service.mission_repo.get_mission(mission_id)
     if mission is None:
         raise HTTPException(status_code=404, detail="Mission not found")

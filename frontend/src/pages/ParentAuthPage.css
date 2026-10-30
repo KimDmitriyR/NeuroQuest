@@ -83,3 +83,14 @@
   font-size: 14px;
 }
 .parent-auth__back:hover { color: var(--brand); }
+
+.parent-auth__notice {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  background: var(--lilac-soft);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}

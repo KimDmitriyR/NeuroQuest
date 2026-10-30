@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSession } from "../features/session/useSession";
 import "./SettingsPage.css";
 
@@ -7,7 +7,6 @@ const formatDate = (iso: string) =>
 
 export function SettingsPage() {
   const { player, parent, clearPlayer, logoutParent, signOutAll } = useSession();
-  const navigate = useNavigate();
 
   return (
     <div className="page page--narrow">
@@ -70,10 +69,7 @@ export function SettingsPage() {
       {(player || parent) && (
         <button
           className="btn btn--danger btn--block settings-signout"
-          onClick={() => {
-            signOutAll();
-            navigate("/");
-          }}
+          onClick={signOutAll}
         >
           Выйти из всего на этом устройстве
         </button>

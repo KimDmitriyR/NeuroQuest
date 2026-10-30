@@ -73,6 +73,7 @@
 }
 
 .app-header--no-search .app-header__search { display: none; }
+.app-header--guest .profile-menu { margin-left: auto; }
 
 .app-header__nav {
   margin-left: auto;

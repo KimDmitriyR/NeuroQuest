@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { QuestCodeForm } from "../features/layout/QuestCodeForm";
 import { Mascot, Sparkle } from "../features/brand/Mascot";
 import { Icon, type IconName } from "../features/layout/Icon";
@@ -8,7 +8,10 @@ import { ProgressTiles } from "../features/progress/ProgressTiles";
 import { useSession } from "../features/session/useSession";
 import "./HomePage.css";
 
-// a scanned QR code opens the site as /?quest=<token>
+// a scanned QR code opens the site as /?quest=<token>; a guest has to sign in
+// first, so the code waits here until a child profile is active
+const PENDING_QUEST_KEY = "neuroquest.pending_quest";
+
 function consumeQuestParamFromUrl(): string | null {
   const url = new URL(window.location.href);
   const token = url.searchParams.get("quest");
@@ -18,12 +21,17 @@ function consumeQuestParamFromUrl(): string | null {
   return token;
 }
 
-const SECTIONS: { to: string; icon: IconName; title: string; text: string; tone: string }[] = [
-  { to: "/missions", icon: "mail", title: "Конверты с миссиями", text: "Задания из реального мира: фото, шифры, алгоритмы", tone: "coral" },
-  { to: "/profile", icon: "trophy", title: "Мои достижения", text: "Награды и собранный мастер-код", tone: "butter" },
-  { to: "/parent", icon: "users", title: "Кабинет родителя", text: "Профили детей и проверка миссий", tone: "cobalt" },
-  { to: "/settings", icon: "sliders", title: "Настройки", text: "Аккаунт, профиль и документы", tone: "lilac" },
-];
+interface Section { to: string; icon: IconName; title: string; text: string; tone: string }
+
+/** Quick links shown to signed-in users only; each is limited to who can use it. */
+function sectionsFor(hasPlayer: boolean, hasParent: boolean): Section[] {
+  return [
+    { to: "/missions", icon: "mail", title: "Конверты с миссиями", text: "Задания из реального мира: фото, шифры, алгоритмы", tone: "coral" },
+    ...(hasPlayer ? [{ to: "/profile", icon: "trophy", title: "Мои достижения", text: "Награды и собранный мастер-код", tone: "butter" } as Section] : []),
+    ...(hasParent ? [{ to: "/parent", icon: "users", title: "Кабинет родителя", text: "Профили детей и проверка миссий", tone: "cobalt" } as Section] : []),
+    { to: "/settings", icon: "sliders", title: "Настройки", text: "Аккаунт, профиль и документы", tone: "lilac" },
+  ];
+}
 
 const SECTORS = [
   { tone: "coral", kind: "bean", title: "Финансы", text: "Деньги, покупки и уловки, на которые легко попасться" },
@@ -38,15 +46,36 @@ const STEPS = [
 ];
 
 export function HomePage() {
-  const { player, playerLoading } = useSession();
+  const { player, parent, playerLoading, parentLoading } = useSession();
   const { start } = useStartQuest();
+  const navigate = useNavigate();
+  const signedIn = !!player || !!parent;
+  const sections = sectionsFor(!!player, !!parent);
 
-  // QR landing: start the scanned quest as soon as we know who is playing
+  // QR landing: remember the scanned code, then start it as soon as a child
+  // profile is active. Guests and parents without a child go to sign-in first.
   useEffect(() => {
-    if (playerLoading || !player) return;
-    const token = consumeQuestParamFromUrl();
-    if (token) start(token);
-  }, [playerLoading, player, start]);
+    if (playerLoading || parentLoading) return;
+    const scanned = consumeQuestParamFromUrl();
+    if (scanned) sessionStorage.setItem(PENDING_QUEST_KEY, scanned);
+
+    if (player) {
+      const token = sessionStorage.getItem(PENDING_QUEST_KEY);
+      if (token) {
+        sessionStorage.removeItem(PENDING_QUEST_KEY);
+        start(token);
+      }
+    } else if (scanned) {
+      navigate("/parent", {
+        replace: true,
+        state: {
+          notice: parent
+            ? "Выбери профиль ребёнка («Играть на этом устройстве»), и карточка откроется."
+            : "Чтобы открыть карточку, войди или зарегистрируйся.",
+        },
+      });
+    }
+  }, [playerLoading, parentLoading, player, parent, start, navigate]);
 
   return (
     <>
@@ -78,7 +107,7 @@ export function HomePage() {
             <div className="hero__form"><QuestCodeForm variant="hero" /></div>
           ) : (
             <div className="hero__actions">
-              <Link className="btn hero__cta" to="/parent">Кабинет родителя</Link>
+              <Link className="btn hero__cta" to="/parent">Войти или зарегистрироваться</Link>
               <span className="hero__note">Профиль ребёнка создаёт родитель</span>
             </div>
           )}
@@ -118,16 +147,20 @@ export function HomePage() {
           </>
         )}
 
-        <h2 className="home__title">Разделы</h2>
-        <div className="quick-grid">
-          {SECTIONS.map((s) => (
-            <Link key={s.to} to={s.to} className="quick-tile">
-              <span className={`quick-tile__icon quick-tile__icon--${s.tone}`}><Icon name={s.icon} size={26} /></span>
-              <span className="quick-tile__title">{s.title}</span>
-              <span className="quick-tile__text">{s.text}</span>
-            </Link>
-          ))}
-        </div>
+        {signedIn && (
+          <>
+            <h2 className="home__title">Разделы</h2>
+            <div className="quick-grid">
+              {sections.map((s) => (
+                <Link key={s.to} to={s.to} className="quick-tile">
+                  <span className={`quick-tile__icon quick-tile__icon--${s.tone}`}><Icon name={s.icon} size={26} /></span>
+                  <span className="quick-tile__title">{s.title}</span>
+                  <span className="quick-tile__text">{s.text}</span>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
 
         {!player && (
           <section className="cta-band">

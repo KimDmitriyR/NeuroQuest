@@ -104,6 +104,11 @@ export function useSessionState(): SessionValue {
   const signOutAll = useCallback(() => {
     logoutParent();
     clearPlayer();
+    // A hard navigation (not a router one) on purpose: it lands on the guest
+    // home even when we were on a members-only page that would otherwise
+    // redirect to sign-in, and it wipes everything the previous user had
+    // cached in memory.
+    window.location.assign("/");
   }, [logoutParent, clearPlayer]);
 
   return {

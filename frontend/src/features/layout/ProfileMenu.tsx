@@ -89,14 +89,20 @@ export function ProfileMenu() {
                   ? `Родитель: ${parent.email}`
                   : player
                     ? "Профиль ребёнка"
-                    : "Профиль не выбран"}
+                    : "Вы не вошли в аккаунт"}
               </div>
             </div>
           </div>
 
-          <MenuItem icon="trophy" onClick={() => go("/profile")}>Мой профиль</MenuItem>
-          <MenuItem icon="mail" onClick={() => go("/missions")}>Конверты с миссиями</MenuItem>
-          <MenuItem icon="users" onClick={() => go("/parent")}>Кабинет родителя</MenuItem>
+          {signedIn ? (
+            <>
+              {player && <MenuItem icon="trophy" onClick={() => go("/profile")}>Мой профиль</MenuItem>}
+              <MenuItem icon="mail" onClick={() => go("/missions")}>Конверты с миссиями</MenuItem>
+              {parent && <MenuItem icon="users" onClick={() => go("/parent")}>Кабинет родителя</MenuItem>}
+            </>
+          ) : (
+            <MenuItem icon="user" onClick={() => go("/parent")}>Вход / Регистрация</MenuItem>
+          )}
           <MenuItem icon="sliders" onClick={() => go("/settings")}>Настройки</MenuItem>
 
           {signedIn && (
@@ -108,7 +114,6 @@ export function ProfileMenu() {
                 onClick={() => {
                   setOpen(false);
                   signOutAll();
-                  navigate("/");
                 }}
               >
                 Выйти

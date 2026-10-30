@@ -8,7 +8,7 @@ const session = await api("/api/quests/start", {
   token,
   body: { player_id: child.id, qr_token: "finstartup-2-0-01" },
 });
-const missions = await api("/api/missions");
+const missions = await api("/api/missions", { token });
 
 // the grand finale needs a child who collected all 12 letters
 const ALL_CARDS = [

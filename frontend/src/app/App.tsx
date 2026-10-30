@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./AppLayout";
 import { SessionProvider } from "../features/session/SessionProvider";
+import { RequireSignedIn } from "../features/session/RequireSignedIn";
 import { useSession } from "../features/session/useSession";
 import { HomePage } from "../pages/HomePage";
 import { QuestPage } from "../pages/QuestPage";
@@ -25,16 +26,26 @@ export function App() {
         <BrowserRouter>
           <Routes>
             {/* the grand finale is a full-screen show: no header/footer */}
-            <Route path="/finale" element={<FinalePage />} />
+            <Route element={<RequireSignedIn />}>
+              <Route path="/finale" element={<FinalePage />} />
+            </Route>
 
             <Route element={<AppLayout />}>
+              {/* open to everyone: landing page, sign-in, settings, legal texts */}
               <Route path="/" element={<HomePage />} />
-              <Route path="/quest/:sessionId" element={<QuestPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/missions" element={<MissionsPage />} />
-              <Route path="/mission/:missionId" element={<MissionPage />} />
-              <Route path="/review" element={<ReviewPage />} />
               <Route path="/parent" element={<ParentAuthOrDashboard />} />
+
+              {/* cards, missions and progress: signed-in users only */}
+              <Route element={<RequireSignedIn />}>
+                <Route path="/quest/:sessionId" element={<QuestPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/missions" element={<MissionsPage />} />
+                <Route path="/mission/:missionId" element={<MissionPage />} />
+              </Route>
+              <Route element={<RequireSignedIn parentOnly />}>
+                <Route path="/review" element={<ReviewPage />} />
+              </Route>
+
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />

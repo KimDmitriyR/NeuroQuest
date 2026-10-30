@@ -25,7 +25,7 @@ await playCard("finstartup-2-0-01", ["C", "C", "C"]);
 await playCard("kibershchit-02", ["B", "A", "B"]);
 const openQuest = await api("/api/quests/start", { method: "POST", token, body: { player_id: child.id, qr_token: "ai-logika-01" } });
 
-const missions = await api("/api/missions");
+const missions = await api("/api/missions", { token });
 const photoMission = missions.find((m) => m.validation_type === "photo");
 const attempt = await api(`/api/missions/${photoMission.id}/attempts`, { method: "POST", token, body: { player_id: child.id } });
 const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect width='800' height='600' fill='#fda085'/><circle cx='400' cy='300' r='120' fill='white' opacity='.7'/><text x='400' y='318' font-size='46' text-anchor='middle' fill='#7a1fc4' font-family='sans-serif'>Копилка 4/3/2/1</text></svg>`;

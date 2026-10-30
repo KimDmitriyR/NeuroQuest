@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import { ApiError } from "../api/client";
 import "./ParentAuthPage.css";
@@ -7,6 +7,8 @@ import "./ParentAuthPage.css";
 export function ParentAuthPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  // a guard or a scanned QR code may have sent us here: say why, and go back after signing in
+  const { notice, from } = (useLocation().state ?? {}) as { notice?: string; from?: string };
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +32,7 @@ export function ParentAuthPage() {
       } else {
         await register(email.trim(), password, acceptTerms);
       }
-      navigate("/parent");
+      navigate(from && from !== "/parent" ? from : "/parent", { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) setError("Неверный email или пароль");
@@ -48,6 +50,7 @@ export function ParentAuthPage() {
   return (
     <div className="parent-auth">
       <h1>Кабинет родителя</h1>
+      {notice && <p className="parent-auth__notice" role="status">{notice}</p>}
       <div className="parent-auth__tabs">
         <button
           className={mode === "login" ? "parent-auth__tab parent-auth__tab--active" : "parent-auth__tab"}

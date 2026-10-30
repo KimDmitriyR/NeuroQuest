@@ -23,7 +23,8 @@ async def _seed_content(db_session: AsyncSession):
 
 
 async def _mission_id(client) -> str:
-    missions = await client.get("/api/missions")
+    # the catalog needs credentials now; any parent will do for looking an id up
+    missions = await client.get("/api/missions", headers=await register_parent(client))
     return next(m["id"] for m in missions.json() if m["validation_type"] == "photo")
 
 
@@ -374,13 +375,32 @@ async def test_reset_is_owner_only(client):
     ).status_code == 200
 
 
-# --------------------------------------------------------------- content stays public
+# --------------------------------------------------------------- catalog needs a login
 
 
-async def test_mission_catalog_is_still_public(client):
-    assert (await client.get("/api/missions")).status_code == 200
+async def test_mission_catalog_requires_credentials(client):
     mission_id = await _mission_id(client)
-    assert (await client.get(f"/api/missions/{mission_id}")).status_code == 200
+
+    assert (await client.get("/api/missions")).status_code == 401
+    assert (await client.get(f"/api/missions/{mission_id}")).status_code == 401
+    # garbage credentials are no better than none
+    junk = {"Authorization": "Bearer junk", "X-Player-Token": "junk"}
+    assert (await client.get("/api/missions", headers=junk)).status_code == 401
+    assert (
+        await client.get(f"/api/missions/{mission_id}", headers=junk)
+    ).status_code == 401
+
+
+async def test_mission_catalog_is_open_to_a_parent_or_a_child_device(client):
+    _pid, parent_headers, token = await _family(client)
+    mission_id = await _mission_id(client)
+
+    for headers in (parent_headers, _child(token)):
+        listing = await client.get("/api/missions", headers=headers)
+        assert listing.status_code == 200
+        assert len(listing.json()) == 3
+        one = await client.get(f"/api/missions/{mission_id}", headers=headers)
+        assert one.status_code == 200
 
 
 # --------------------------------------------------------------- GET /players/me

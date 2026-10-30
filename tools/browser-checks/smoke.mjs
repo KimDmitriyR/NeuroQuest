@@ -103,14 +103,69 @@ await check(
   "dropdown has profile / missions / parent area / settings / sign out",
   ["Мой профиль", "Конверты с миссиями", "Кабинет родителя", "Настройки", "Выйти"].every((l) => labels.includes(l)),
 );
-await items[labels.indexOf("Выйти")].click();
-await sleep(500);
+await Promise.all([
+  page.waitForNavigation({ waitUntil: "networkidle0" }),
+  items[labels.indexOf("Выйти")].click(),
+]);
 await check("sign out returns to the guest home", (await text()).includes("Профиль ребёнка создаёт родитель"));
+await check("sign out lands on / even from a members-only page", new URL(page.url()).pathname === "/");
 const stored = await page.evaluate(() => [
   localStorage.getItem("neuroquest.parent_token"),
   localStorage.getItem("neuroquest.player_token"),
 ]);
 await check("sign out cleared both parent token and active child", stored[0] === null && stored[1] === null);
+
+// 8b. a GUEST (nobody signed in): only sign-in and settings, everything else is closed
+{
+  const guestCtx = await newContext(browser);
+  const g = await guestCtx.newPage();
+  await g.setViewport({ width: 1280, height: 800 });
+  g.on("pageerror", (e) => problems.push("pageerror (guest): " + e.message));
+  const gText = () => g.evaluate(() => document.body.innerText);
+  const gWait = (t) =>
+    g.waitForFunction((x) => document.body.innerText.includes(x), { timeout: 8000 }, t).catch(() => {});
+
+  await g.goto(WEB + "/", { waitUntil: "networkidle0" });
+  await check(
+    "guest header has no missions/achievements links and no code field",
+    (await g.evaluate(() => !document.querySelector(".app-header__nav") && !document.querySelector(".app-header__search"))),
+  );
+  await g.click(".profile-menu__button");
+  await sleep(300);
+  const guestItems = await g.evaluate(() =>
+    [...document.querySelectorAll(".profile-menu__item")].map((el) => el.textContent.trim()),
+  );
+  await check(
+    "guest menu holds only sign-in/registration and settings",
+    JSON.stringify(guestItems) === JSON.stringify(["Вход / Регистрация", "Настройки"]),
+  );
+  await check(
+    "guest home does not link to missions, profile or the parent dashboard",
+    (await g.evaluate(() => !document.querySelector(".quick-grid"))),
+  );
+
+  for (const path of ["/missions", "/profile", "/review"]) {
+    await g.goto(WEB + path, { waitUntil: "networkidle0" });
+    await gWait("Войди или зарегистрируйся");
+    await check(
+      `guest opening ${path} is sent to sign-in`,
+      new URL(g.url()).pathname === "/parent" && (await gText()).includes("Войди или зарегистрируйся"),
+    );
+  }
+
+  // a scanned QR card must not open for a guest either
+  await g.goto(WEB + "/?quest=finstartup-2-0-01", { waitUntil: "networkidle0" });
+  await gWait("Чтобы открыть карточку");
+  await check(
+    "guest scanning a QR card is asked to sign in, no quest starts",
+    new URL(g.url()).pathname === "/parent" && (await gText()).includes("Чтобы открыть карточку"),
+  );
+
+  // the API says no as well, not just the screens
+  const apiStatus = await g.evaluate(async (api) => (await fetch(api + "/api/missions")).status, process.env.API_URL ?? "http://localhost:8000");
+  await check("the missions API refuses a guest (401)", apiStatus === 401);
+  await guestCtx.close();
+}
 
 // 9. the CHILD'S OWN DEVICE: only the link the parent sent, no parent login there
 {

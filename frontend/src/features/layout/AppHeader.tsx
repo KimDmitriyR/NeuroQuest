@@ -1,4 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useSession } from "../session/useSession";
 import { Icon } from "./Icon";
 import { ProfileMenu } from "./ProfileMenu";
 import { QuestCodeForm } from "./QuestCodeForm";
@@ -8,31 +9,43 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppHeader() {
   const { pathname } = useLocation();
-  // the home page hero has its own big code field, don't show two
-  const hideSearch = pathname === "/";
+  const { player, parent } = useSession();
+  const signedIn = !!player || !!parent;
+  // the home page hero has its own big code field, don't show two;
+  // a code can only be entered by a child profile
+  const hideSearch = pathname === "/" || !player;
 
   return (
-    <header className={`app-header${hideSearch ? " app-header--no-search" : ""}`}>
+    <header
+      className={`app-header${hideSearch ? " app-header--no-search" : ""}${signedIn ? "" : " app-header--guest"}`}
+    >
       <div className="app-header__bar">
         <Link to="/" className="app-logo" aria-label="NeuroQuest — на главную">
           <span className="app-logo__mark">NQ</span>
           <span className="app-logo__text">NeuroQuest</span>
         </Link>
 
-        <div className="app-header__search">
-          <QuestCodeForm variant="header" />
-        </div>
+        {player && (
+          <div className="app-header__search">
+            <QuestCodeForm variant="header" />
+          </div>
+        )}
 
-        <nav className="app-header__nav" aria-label="Основное меню">
-          <NavLink to="/missions" className={navClass}>
-            <Icon name="mail" />
-            <span>Конверты</span>
-          </NavLink>
-          <NavLink to="/profile" className={navClass}>
-            <Icon name="trophy" />
-            <span>Достижения</span>
-          </NavLink>
-        </nav>
+        {/* before signing in the right side holds only the sign-in/settings menu */}
+        {signedIn && (
+          <nav className="app-header__nav" aria-label="Основное меню">
+            <NavLink to="/missions" className={navClass}>
+              <Icon name="mail" />
+              <span>Конверты</span>
+            </NavLink>
+            {player && (
+              <NavLink to="/profile" className={navClass}>
+                <Icon name="trophy" />
+                <span>Достижения</span>
+              </NavLink>
+            )}
+          </nav>
+        )}
 
         <ProfileMenu />
       </div>

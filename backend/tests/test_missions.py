@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.content.loader import load_all_cards, load_all_missions
 from app.models.envelope_mission import EnvelopeMission
-from tests.helpers import create_player_on_device
+from tests.helpers import create_player_on_device, register_parent
 
 MISSION_TITLE = "3D-копилка с бюджетными секторами"
 
@@ -132,7 +132,9 @@ async def test_cannot_review_before_submit(client, db_session):
 async def test_get_mission(client, db_session):
     mission_id = await _mission_id(db_session)
 
-    response = await client.get(f"/api/missions/{mission_id}")
+    response = await client.get(
+        f"/api/missions/{mission_id}", headers=await register_parent(client)
+    )
 
     assert response.status_code == 200
     assert response.json()["validation_type"] == "photo"
@@ -141,7 +143,9 @@ async def test_get_mission(client, db_session):
 async def test_list_missions(client, db_session):
     await _mission_id(db_session)  # ensures fixture ran
 
-    response = await client.get("/api/missions")
+    response = await client.get(
+        "/api/missions", headers=await register_parent(client)
+    )
 
     assert response.status_code == 200
     titles = {m["title"] for m in response.json()}
@@ -313,7 +317,9 @@ async def test_cipher_mission_cannot_submit_after_completed(client, db_session):
 async def test_mission_view_includes_sector_and_reward(client, db_session):
     mission_id = await _mission_id(db_session)
 
-    response = await client.get(f"/api/missions/{mission_id}")
+    response = await client.get(
+        f"/api/missions/{mission_id}", headers=await register_parent(client)
+    )
 
     body = response.json()
     assert body["sector_title"] == "Финстартап 2.0"
@@ -324,7 +330,9 @@ async def test_mission_view_includes_sector_and_reward(client, db_session):
 async def test_list_missions_each_has_sector_and_reward(client, db_session):
     await _mission_id(db_session)
 
-    response = await client.get("/api/missions")
+    response = await client.get(
+        "/api/missions", headers=await register_parent(client)
+    )
 
     for mission in response.json():
         assert mission["sector_title"]

@@ -1,18 +1,35 @@
 import { NavLink } from "react-router-dom";
+import { useSession } from "../session/useSession";
 import { Icon, type IconName } from "./Icon";
 
-const ITEMS: { to: string; label: string; icon: IconName; end?: boolean }[] = [
-  { to: "/", label: "Главная", icon: "home", end: true },
-  { to: "/missions", label: "Конверты", icon: "mail" },
-  { to: "/profile", label: "Профиль", icon: "trophy" },
-  { to: "/parent", label: "Родителям", icon: "users" },
-];
+interface Item { to: string; label: string; icon: IconName; end?: boolean }
+
+const HOME: Item = { to: "/", label: "Главная", icon: "home", end: true };
+
+/** Tabs depend on who is signed in; guests only get sign-in and settings. */
+function tabsFor(hasPlayer: boolean, hasParent: boolean): Item[] {
+  if (!hasPlayer && !hasParent) {
+    return [
+      HOME,
+      { to: "/parent", label: "Войти", icon: "user" },
+      { to: "/settings", label: "Настройки", icon: "sliders" },
+    ];
+  }
+  return [
+    HOME,
+    { to: "/missions", label: "Конверты", icon: "mail" },
+    ...(hasPlayer ? [{ to: "/profile", label: "Профиль", icon: "trophy" } as Item] : []),
+    ...(hasParent ? [{ to: "/parent", label: "Родителям", icon: "users" } as Item] : []),
+  ];
+}
 
 /** Mobile tab bar, like in marketplace apps. Hidden on wide screens via CSS. */
 export function BottomNav() {
+  const { player, parent } = useSession();
+  const items = tabsFor(!!player, !!parent);
   return (
     <nav className="bottom-nav" aria-label="Навигация">
-      {ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
