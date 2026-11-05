@@ -85,10 +85,12 @@
   transform: translateY(40px);
 }
 .sector {
+  --mascot-h: 92px; /* the picture's height; its width follows the ratio set in the markup */
   position: relative;
   overflow: hidden;
   min-height: 168px;
-  padding: 24px 26px;
+  /* keep the text clear of the picture in the corner */
+  padding: 24px calc(var(--mascot-h) * var(--mascot-ratio, 1) + 30px) 24px 26px;
   border-radius: var(--r-lg);
   color: var(--ink);
   box-shadow: var(--shadow-lg);
@@ -103,10 +105,18 @@
   letter-spacing: -0.03em;
   line-height: 1.1;
   margin-bottom: 8px;
-  max-width: 70%;
 }
-.sector__text { margin: 0; max-width: 72%; font-size: 14px; line-height: 1.55; opacity: 0.9; }
-.sector__mascot { position: absolute; right: 14px; bottom: 10px; width: 96px; height: 96px; }
+.sector__text { margin: 0; font-size: 14px; line-height: 1.55; opacity: 0.9; }
+.sector__mascot {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  width: auto;
+  height: var(--mascot-h);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 8px rgba(27, 30, 58, 0.22));
+  pointer-events: none;
+}
 
 /* ───────── sections below ───────── */
 .page.home { padding-top: 128px; }
@@ -217,7 +227,7 @@
 
 @media (max-width: 960px) {
   .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sector__title, .sector__text { max-width: 78%; }
+  .sector { --mascot-h: 60px; }
 }
 
 @media (max-width: 780px) {
@@ -227,7 +237,7 @@
   .hero__sparkle--b, .hero__sparkle--c { display: none; }
   .hero__inner { padding-top: 56px; }
   .sectors { grid-template-columns: minmax(0, 1fr); transform: translateY(28px); }
-  .sector { min-height: 0; }
+  .sector { min-height: 0; --mascot-h: 84px; }
   .page.home { padding-top: 84px; }
   .home__title { margin-top: 56px; }
   .steps { grid-template-columns: minmax(0, 1fr); }
@@ -241,6 +251,3 @@
   .quick-grid { grid-template-columns: minmax(0, 1fr); }
   .quick-tile { padding: 18px; }
 }
-
-/* mascots inside a coloured tile get a pale body so they do not melt into it */
-.sector .mascot > g:first-of-type { fill: rgba(255, 255, 255, 0.82); }

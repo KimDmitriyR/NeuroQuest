@@ -3,6 +3,7 @@ import { useSession } from "../session/useSession";
 import { Icon } from "./Icon";
 import { ProfileMenu } from "./ProfileMenu";
 import { QuestCodeForm } from "./QuestCodeForm";
+import wordmark from "../../assets/brand/logo-wordmark.png";
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `app-header__nav-item${isActive ? " app-header__nav-item--active" : ""}`;
@@ -22,7 +23,7 @@ export function AppHeader() {
       <div className="app-header__bar">
         <Link to="/" className="app-logo" aria-label="NeuroQuest — на главную">
           <span className="app-logo__mark">NQ</span>
-          <span className="app-logo__text">NeuroQuest</span>
+          <img className="app-logo__word" src={wordmark} width={565} height={100} alt="НЕЙРОКВЕСТ" />
         </Link>
 
         {player && (

@@ -59,11 +59,12 @@
   letter-spacing: -0.04em;
   box-shadow: 0 6px 12px -6px rgba(122, 88, 214, 0.8);
 }
-.app-logo__text {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 22px;
-  letter-spacing: -0.04em;
+/* the cut-out НЕЙРОКВЕСТ wordmark: neon letters with a thin navy outline,
+   so they hold on the light header */
+.app-logo__word {
+  display: block;
+  height: 30px;
+  width: auto;
 }
 
 .app-header__search {
@@ -161,6 +162,6 @@
 }
 
 @media (max-width: 640px) {
-  .app-logo__text { font-size: 19px; }
+  .app-logo__word { height: 25px; }
   .app-logo__mark { width: 34px; height: 34px; font-size: 14px; }
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { QuestCodeForm } from "../features/layout/QuestCodeForm";
@@ -6,6 +7,9 @@ import { Icon, type IconName } from "../features/layout/Icon";
 import { useStartQuest } from "../features/quest/useStartQuest";
 import { ProgressTiles } from "../features/progress/ProgressTiles";
 import { useSession } from "../features/session/useSession";
+import coinImg from "../assets/brand/mascot-coin.png";
+import shieldImg from "../assets/brand/mascot-shield.png";
+import robotImg from "../assets/brand/mascot-robot.png";
 import "./HomePage.css";
 
 // a scanned QR code opens the site as /?quest=<token>; a guest has to sign in
@@ -33,10 +37,12 @@ function sectionsFor(hasPlayer: boolean, hasParent: boolean): Section[] {
   ];
 }
 
+// the mascots on the tiles are the supplied pictures (coin / shield / robot);
+// the clouds in the hero stay the original SVG characters
 const SECTORS = [
-  { tone: "coral", kind: "bean", title: "Финансы", text: "Деньги, покупки и уловки, на которые легко попасться" },
-  { tone: "cobalt", kind: "squircle", title: "Кибербезопасность", text: "Пароли, мошенники и что делать, если что-то пошло не так" },
-  { tone: "lilac", kind: "cloud", title: "Искусственный интеллект", text: "Как работают нейросети и когда им нельзя верить" },
+  { tone: "coral", img: coinImg, w: 314, h: 320, title: "Финансы", text: "Деньги, покупки и уловки, на которые легко попасться" },
+  { tone: "cobalt", img: shieldImg, w: 297, h: 320, title: "Кибербезопасность", text: "Пароли, мошенники и что делать, если что-то пошло не так" },
+  { tone: "lilac", img: robotImg, w: 320, h: 239, title: "Искусственный интеллект", text: "Как работают нейросети и когда им нельзя верить" },
 ] as const;
 
 const STEPS = [
@@ -115,10 +121,14 @@ export function HomePage() {
 
         <ul className="sectors">
           {SECTORS.map((s) => (
-            <li key={s.title} className={`sector sector--${s.tone}`}>
+            <li
+              key={s.title}
+              className={`sector sector--${s.tone}`}
+              style={{ "--mascot-ratio": s.w / s.h } as CSSProperties}
+            >
               <div className="sector__title">{s.title}</div>
               <p className="sector__text">{s.text}</p>
-              <Mascot kind={s.kind} size={74} className="sector__mascot" />
+              <img className="sector__mascot" src={s.img} width={s.w} height={s.h} alt="" aria-hidden="true" />
             </li>
           ))}
         </ul>
