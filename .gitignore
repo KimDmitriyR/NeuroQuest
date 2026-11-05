@@ -8,6 +8,8 @@ venv/
 .env
 .env.*
 !.env.example
+# frontend/.env.production holds no secrets: an empty VITE_API_URL = same-origin API
+!.env.production
 
 # Node
 node_modules/

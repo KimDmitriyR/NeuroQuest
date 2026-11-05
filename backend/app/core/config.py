@@ -22,5 +22,14 @@ class Settings(BaseSettings):
     login_max_failures_per_ip: int = 20
     login_max_failures_per_email: int = 30
 
+    # path to the built frontend (frontend/dist). When set, this process also
+    # serves the SPA, so the whole app lives on one port without nginx/Docker.
+    frontend_dist: str | None = None
+
+    # registration flood protection: every attempt from an IP counts (also the
+    # ones answered 409), requests rejected by validation (422) do not
+    register_max_per_ip: int = 10
+    register_rate_limit_window_seconds: int = 60 * 60
+
 
 settings = Settings()

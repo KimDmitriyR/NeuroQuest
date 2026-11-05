@@ -4,6 +4,17 @@ import { useAuth } from "../features/auth/useAuth";
 import { ApiError } from "../api/client";
 import "./ParentAuthPage.css";
 
+/** "Слишком много попыток…" with a human wait time when the server told us */
+function tooManyAttemptsMessage(mode: "login" | "register", retryAfter?: number): string {
+  const what = mode === "register" ? "регистрации" : "входа";
+  let wait = "позже";
+  if (retryAfter) {
+    const minutes = Math.ceil(retryAfter / 60);
+    wait = minutes <= 1 ? "через минуту" : minutes < 60 ? `через ${minutes} мин.` : `через ${Math.ceil(minutes / 60)} ч.`;
+  }
+  return `Слишком много попыток ${what} с этого устройства. Попробуй ${wait}.`;
+}
+
 export function ParentAuthPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +48,7 @@ export function ParentAuthPage() {
       if (err instanceof ApiError) {
         if (err.status === 401) setError("Неверный email или пароль");
         else if (err.status === 409) setError("Этот email уже зарегистрирован");
+        else if (err.status === 429) setError(tooManyAttemptsMessage(mode, err.retryAfter));
         else if (err.status === 422) setError("Проверь email и пароль (минимум 8 символов)");
         else setError(err.message);
       } else {

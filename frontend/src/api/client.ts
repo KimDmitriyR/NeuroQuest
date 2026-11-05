@@ -1,4 +1,10 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+// Dev: the Vite server (5173) talks to the API on 8000. Production build: the
+// API serves the frontend itself (FRONTEND_DIST, or nginx in Docker), so the
+// default is the page's own origin - an empty prefix gives relative URLs like
+// "/api/...". An env var set to "" is "unset" on Windows, hence a default
+// instead of a value to configure. VITE_API_URL still wins when it is set.
+const BASE_URL: string =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "" : "http://localhost:8000");
 export const PARENT_TOKEN_KEY = "neuroquest.parent_token";
 /** the child's own credential on this device (issued by the parent) */
 export const PLAYER_TOKEN_KEY = "neuroquest.player_token";
@@ -7,10 +13,13 @@ export const PLAYER_TOKEN_REJECTED_EVENT = "neuroquest:player-token-rejected";
 
 export class ApiError extends Error {
   status: number;
+  /** seconds from the Retry-After header (429 answers), when the server sent it */
+  retryAfter?: number;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, retryAfter?: number) {
     super(message);
     this.status = status;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -38,7 +47,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       localStorage.removeItem(PLAYER_TOKEN_KEY);
       window.dispatchEvent(new Event(PLAYER_TOKEN_REJECTED_EVENT));
     }
-    throw new ApiError(response.status, body.detail ?? response.statusText);
+    const retryAfter = Number(response.headers.get("Retry-After"));
+    throw new ApiError(
+      response.status,
+      body.detail ?? response.statusText,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+    );
   }
 
   if (response.status === 204) {

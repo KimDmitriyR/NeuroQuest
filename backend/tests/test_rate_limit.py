@@ -184,3 +184,84 @@ async def test_lockout_expires(client, monkeypatch):
 
     clock.advance(15 * 60)
     assert (await _login(client, PASSWORD)).status_code == 200
+
+
+# ------------------------------------------------------------- registration limit
+
+
+async def _try_register(client, email, *, password=PASSWORD, accept_terms=True):
+    return await client.post(
+        "/api/auth/register",
+        json={"email": email, "password": password, "accept_terms": accept_terms},
+    )
+
+
+async def test_register_is_blocked_after_ten_attempts_from_one_ip(client):
+    for i in range(10):
+        assert (await _try_register(client, f"p{i}@example.com")).status_code == 201
+
+    blocked = await _try_register(client, "p10@example.com")
+    assert blocked.status_code == 429
+    assert int(blocked.headers["Retry-After"]) > 0
+
+
+async def test_register_409_counts_as_an_attempt(client):
+    await _register(client)  # attempt 1 (201)
+    for _ in range(9):  # attempts 2..10, all "already registered"
+        assert (await _try_register(client, EMAIL)).status_code == 409
+
+    assert (await _try_register(client, EMAIL)).status_code == 429
+    # and the rest of the world is blocked too, not only the repeated email
+    assert (await _try_register(client, "other@example.com")).status_code == 429
+
+
+async def test_register_422_does_not_spend_attempts(client):
+    for _ in range(15):
+        assert (await _try_register(client, "bad", password="x")).status_code == 422
+        assert (await _try_register(client, "a@example.com", accept_terms=False)).status_code == 422
+
+    assert (await _try_register(client, "fine@example.com")).status_code == 201
+
+
+async def test_register_limit_is_configurable(client, monkeypatch):
+    from app.core.register_guard import register_guard
+
+    monkeypatch.setattr(register_guard._limiter, "max_failures", 2)
+    assert (await _try_register(client, "a@example.com")).status_code == 201
+    assert (await _try_register(client, "b@example.com")).status_code == 201
+    assert (await _try_register(client, "c@example.com")).status_code == 429
+
+
+async def test_register_block_expires_after_the_window(client, monkeypatch):
+    from app.core.register_guard import register_guard
+
+    clock = FakeClock()
+    monkeypatch.setattr(register_guard._limiter, "_clock", clock)
+    for i in range(10):
+        await _try_register(client, f"p{i}@example.com")
+    assert (await _try_register(client, "late@example.com")).status_code == 429
+
+    clock.advance(60 * 60)
+    assert (await _try_register(client, "late@example.com")).status_code == 201
+
+
+async def test_blocked_register_does_not_extend_the_block(client, monkeypatch):
+    from app.core.register_guard import register_guard
+
+    clock = FakeClock()
+    monkeypatch.setattr(register_guard._limiter, "_clock", clock)
+    for i in range(10):
+        await _try_register(client, f"p{i}@example.com")
+    clock.advance(30 * 60)
+    assert (await _try_register(client, "x@example.com")).status_code == 429  # refused, not counted
+
+    clock.advance(30 * 60)  # the window since the 10 real attempts is over
+    assert (await _try_register(client, "x@example.com")).status_code == 201
+
+
+async def test_registration_limit_does_not_affect_login(client):
+    await _register(client)
+    for i in range(9):
+        await _try_register(client, f"p{i}@example.com")
+    assert (await _try_register(client, "z@example.com")).status_code == 429
+    assert (await _login(client, PASSWORD)).status_code == 200

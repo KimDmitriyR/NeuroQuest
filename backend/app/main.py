@@ -14,6 +14,7 @@ from app.api.parents import router as parents_router
 from app.api.players import router as players_router
 from app.api.quests import router as quests_router
 from app.core.config import settings
+from app.spa import mount_frontend
 
 app = FastAPI(
     title="NeuroQuest API",
@@ -52,3 +53,8 @@ async def database_health_check(
         "status": "ok",
         "database": result.scalar(),
     }
+
+
+# must stay LAST: its catch-all routes would shadow anything registered after it
+if settings.frontend_dist:
+    mount_frontend(app, settings.frontend_dist)

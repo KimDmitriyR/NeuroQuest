@@ -56,6 +56,15 @@ def _reset_login_guard():
     login_guard.clear()
 
 
+@pytest.fixture(autouse=True)
+def _reset_register_guard():
+    from app.core.register_guard import register_guard
+
+    register_guard.clear()
+    yield
+    register_guard.clear()
+
+
 @pytest.fixture
 async def db_session() -> AsyncSession:
     TestSessionLocal = async_sessionmaker(bind=app_engine, expire_on_commit=False)
