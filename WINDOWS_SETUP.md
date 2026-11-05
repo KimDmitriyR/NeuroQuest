@@ -1,9 +1,8 @@
 # Запуск NeuroQuest локально на Windows 10/11
 
 Полная инструкция от нуля до работающего приложения в браузере. Docker
-не нужен — PostgreSQL ставится напрямую, это оказалось проще и надёжнее
-(Docker Desktop на Windows нередко падает с ошибками WSL вроде
-`ERROR_NO_SYSTEM_RESOURCES`).
+не нужен — PostgreSQL ставится напрямую; это основной сценарий, на нём всё
+проверялось. (Вариант с Docker описан в `README.md`, он не проверялся.)
 
 ## Что нужно скачать заранее
 
@@ -206,9 +205,9 @@ npm run dev
 сервере в pgAdmin → Properties → Connection → Port, и при необходимости
 поправить порт в `backend/.env` в строке `DATABASE_URL`.
 
-**Docker Desktop падает с `ERROR_NO_SYSTEM_RESOURCES` / ошибками WSL**
+**Docker Desktop выдаёт ошибки WSL (например `ERROR_NO_SYSTEM_RESOURCES`)**
 Эта инструкция Docker не использует вообще, можно игнорировать. Если
-Docker всё же нужен для чего-то другого — помогает полная перезагрузка
+Docker всё же понадобится, обычные шаги при ошибках WSL: перезагрузка
 компьютера, `wsl --update` и `wsl --shutdown` из PowerShell от имени
 администратора.
 

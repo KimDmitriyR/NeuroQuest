@@ -24,12 +24,35 @@ async function check(label, cond) {
   console.log(`${cond ? "PASS" : "FAIL"}  ${step}. ${label}`);
   if (!cond) console.log("   page text:", (await text()).slice(0, 300).replace(/\n/g, " | "));
 }
+// Poll until `pred` holds in the page, tolerating a navigation that destroys the
+// execution context mid-check (sign-out does an SPA redirect to /parent AND then
+// a hard location.assign("/"); waitForNavigation resolves on the first one).
+async function settleOn(pred, ms = 10000) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    try {
+      if (await page.evaluate(pred)) return true;
+    } catch {
+      /* context destroyed by the pending navigation: try again */
+    }
+    await sleep(150);
+  }
+  return false;
+}
 const waitText = (t, ms = 8000) =>
   page.waitForFunction((x) => document.body.innerText.includes(x), { timeout: ms }, t).catch(() => {});
 
 // 1. guest
 await page.goto(WEB + "/", { waitUntil: "networkidle0" });
 await check("guest home asks for a parent profile", (await text()).includes("Профиль ребёнка создаёт родитель"));
+
+// new look: the supplied pictures actually load (a broken <img> has naturalWidth 0)
+const imgs = await page.evaluate(() => ({
+  logo: [...document.querySelectorAll(".app-logo__word")].map((i) => i.complete && i.naturalWidth > 0),
+  tiles: [...document.querySelectorAll(".sector__mascot")].map((i) => i.complete && i.naturalWidth > 0),
+}));
+await check("header shows the НЕЙРОКВЕСТ logo picture", imgs.logo.length === 1 && imgs.logo[0]);
+await check("the three sector tiles show their pictures (coin, shield, robot)", imgs.tiles.length === 3 && imgs.tiles.every(Boolean));
 
 // 2. register through the real form (consent gate)
 await page.goto(WEB + "/parent", { waitUntil: "networkidle0" });
@@ -103,10 +126,8 @@ await check(
   "dropdown has profile / missions / parent area / settings / sign out",
   ["Мой профиль", "Конверты с миссиями", "Кабинет родителя", "Настройки", "Выйти"].every((l) => labels.includes(l)),
 );
-await Promise.all([
-  page.waitForNavigation({ waitUntil: "networkidle0" }),
-  items[labels.indexOf("Выйти")].click(),
-]);
+await items[labels.indexOf("Выйти")].click();
+await settleOn(() => location.pathname === "/" && document.body.innerText.includes("Профиль ребёнка создаёт родитель"));
 await check("sign out returns to the guest home", (await text()).includes("Профиль ребёнка создаёт родитель"));
 await check("sign out lands on / even from a members-only page", new URL(page.url()).pathname === "/");
 const stored = await page.evaluate(() => [
@@ -203,6 +224,40 @@ await check("sign out cleared both parent token and active child", stored[0] ===
   await kidWait("Профиль ребёнка создаёт родитель");
   await check("old /?child=<id> links no longer sign anyone in", (await kidText()).includes("Профиль ребёнка создаёт родитель"));
   await kidCtx.close();
+}
+
+// rate limits: the server answers 429 + Retry-After; the form must say so in Russian.
+// (Faked at the network layer: a real 429 would need REGISTER_MAX_PER_IP at 10.)
+{
+  const limitCtx = await newContext(browser);
+  const lp = await limitCtx.newPage();
+  await lp.setViewport({ width: 1280, height: 800 });
+  await lp.setRequestInterception(true);
+  lp.on("request", (req) => {
+    if (req.method() === "POST" && /\/api\/auth\/(register|login)$/.test(req.url())) {
+      req.respond({
+        status: 429,
+        contentType: "application/json",
+        headers: { "Retry-After": "1800", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ detail: "Too many attempts. Try again later." }),
+      });
+    } else req.continue();
+  });
+  const lt = () => lp.evaluate(() => document.body.innerText);
+  await lp.goto(WEB + "/parent", { waitUntil: "networkidle0" });
+  await lp.type('input[type="email"]', "limit@example.com");
+  await lp.type('input[type="password"]', "parol12345");
+  await lp.click('.parent-auth__form button[type="submit"]');
+  await lp.waitForSelector(".parent-auth__error", { timeout: 4000 }).catch(() => {});
+  let t = await lt();
+  await check("login 429 shows a Russian message with the wait time", t.includes("Слишком много попыток входа") && t.includes("через 30 мин."));
+  await (await lp.$$(".parent-auth__tab"))[1].click();
+  await lp.click(".parent-auth__consent input");
+  await lp.click('.parent-auth__form button[type="submit"]');
+  await lp.waitForFunction(() => document.body.innerText.includes("попыток регистрации"), { timeout: 4000 }).catch(() => {});
+  t = await lt();
+  await check("register 429 shows a Russian message with the wait time", t.includes("Слишком много попыток регистрации") && t.includes("через 30 мин."));
+  await limitCtx.close();
 }
 
 console.log(problems.length ? "\nBROWSER PROBLEMS:\n" + problems.join("\n") : "\nno console errors / page errors");
