@@ -1,0 +1,17 @@
+# Store and check out text files with LF everywhere, including on Windows.
+# Shell scripts copied into Docker images (docker-entrypoint.sh) must not get
+# CRLF line endings: "exec ... : no such file or directory" is the symptom.
+* text=auto eol=lf
+
+# binary files: never touched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.rar binary
+*.zip binary

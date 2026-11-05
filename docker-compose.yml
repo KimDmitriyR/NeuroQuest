@@ -1,3 +1,9 @@
+# Postgres only (for local development, backend/frontend run on the host):
+#     docker compose up -d
+# The whole app in containers (postgres + backend + nginx/frontend):
+#     copy .env.example .env      (then set JWT_SECRET_KEY, see the file)
+#     docker compose --profile app up -d --build
+# The site is then on http://localhost:8080 (WEB_PORT).
 services:
   postgres:
     image: postgres:17
@@ -6,13 +12,52 @@ services:
     environment:
       POSTGRES_DB: neuroquest
       POSTGRES_USER: neuroquest
-      POSTGRES_PASSWORD: neuroquest
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-neuroquest}
 
     ports:
-      - "5432:5432"
+      # host-only: the database is not meant to be reachable from the network
+      - "127.0.0.1:5432:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neuroquest -d neuroquest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    profiles: ["app"]
+    build: ./backend
+    container_name: neuroquest-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://neuroquest:${POSTGRES_PASSWORD:-neuroquest}@postgres:5432/neuroquest
+      # compose refuses to start the service if this is empty; the container
+      # entrypoint checks it again (and rejects the public dev default)
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env (see .env.example)}
+      REGISTER_MAX_PER_IP: ${REGISTER_MAX_PER_IP:-10}
+      REGISTER_RATE_LIMIT_WINDOW_SECONDS: ${REGISTER_RATE_LIMIT_WINDOW_SECONDS:-3600}
+      SEED_CONTENT: ${SEED_CONTENT:-1}
+    # no "ports": only nginx (same compose network) can reach the backend, which
+    # is what makes trusting X-Forwarded-For in the entrypoint safe
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    profiles: ["app"]
+    build: ./frontend
+    container_name: neuroquest-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
